@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 
-export default function OverviewLayout() {
+export default function AccountLayout() {
   const t = useTheme();
   return (
     <Stack screenOptions={{
@@ -11,7 +11,7 @@ export default function OverviewLayout() {
       headerShadowVisible: false,
       headerStyle: { backgroundColor: t.colors.background },
     }}>
-      <Stack.Screen name="index" options={{ title: 'Overview' }} />
+      <Stack.Screen name="index" options={{ title: 'Account' }} />
     </Stack>
   );
 }

@@ -5,16 +5,15 @@ import { Platform } from 'react-native';
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const t = useTheme();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: t.colors.tint,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
@@ -29,9 +28,18 @@ export default function TabLayout() {
       <Tabs.Screen
         name="overview"
         options={{
-          title: 'Overview',
+          title: 'Home',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="chart.pie.fill" color={color} />
+            <IconSymbol size={28} name="house.fill" color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="activity"
+        options={{
+          title: 'Activity',
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={28} name="clock.fill" color={color} />
           ),
         }}
       />
@@ -45,14 +53,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="activity"
+        name="account"
         options={{
-          title: 'Activity',
+          title: 'Account',
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="clock.fill" color={color} />
+            <IconSymbol size={28} name="person.crop.circle" color={color} />
           ),
         }}
       />
+      {/* Hide default starter routes from tab bar */}
+      <Tabs.Screen name="index" options={{ href: null }} />
+      <Tabs.Screen name="explore" options={{ href: null }} />
     </Tabs>
   );
 }

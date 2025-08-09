@@ -1,24 +1,30 @@
 import React from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useRouter, useNavigation } from 'expo-router';
 import { useLayoutEffect } from 'react';
 import { useStore, selectGroupsArray } from '@/store/store';
+import { useTheme } from '@/hooks/useTheme';
+import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
+import { ListItem } from '@/components/ui/ListItem';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export default function GroupsScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const { state, hydrated } = useStore();
   const groups = selectGroupsArray(state);
+  const t = useTheme();
+  const styles = React.useMemo(() => makeStyles(t), [t]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <Pressable
+        <HeaderIconButton
+          name="plus"
+          accessibilityLabel="Add group"
+          accessibilityHint="Creates a new group"
           onPress={() => router.push({ pathname: '/(tabs)/groups/create' } as never)}
-          style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1, paddingHorizontal: 8 }]}
-        >
-          <Text style={{ color: '#007aff', fontWeight: '600' }}>Add</Text>
-        </Pressable>
+        />
       ),
     });
   }, [navigation, router]);
@@ -31,49 +37,33 @@ export default function GroupsScreen() {
       keyExtractor={(item) => item.id}
       contentInsetAdjustmentBehavior="automatic"
       renderItem={({ item }) => (
-        <Pressable onPress={() => router.push(`/group/${item.id}`)} style={styles.row}>
-          <View style={styles.avatar} />
-          <View style={styles.info}>
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.meta}>{item.memberIds.length} members</Text>
-          </View>
-          <Text style={styles.chevron}>›</Text>
-        </Pressable>
+        <ListItem
+          title={<Text style={styles.name}>{item.name}</Text>}
+          subtitle={<Text style={styles.meta}>{item.memberIds.length} members</Text>}
+          left={<View style={styles.avatar} />}
+          showChevron
+          accessibilityLabel={`Open group ${item.name}`}
+          accessibilityHint="Opens the group details"
+          onPress={() => router.push(`/group/${item.id}`)}
+        />
       )}
-      ListEmptyComponent={
-        <View style={{ padding: 16 }}>
-          <Text style={{ color: '#6b7280', textAlign: 'center' }}>No groups yet. Tap Add to create one.</Text>
-        </View>
-      }
+      ListEmptyComponent={<EmptyState title="No groups yet" message="Tap Add to create your first group." />}
       ListFooterComponent={<View style={{ height: 24 }} />}
     />
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    backgroundColor: '#e5e7eb',
-    marginRight: 12,
-  },
-  info: { flex: 1 },
-  name: { fontSize: 16, fontWeight: '600' },
-  meta: { color: '#6b7280', marginTop: 2 },
-  chevron: { fontSize: 24, color: '#9ca3af', marginLeft: 8 },
-});
+function makeStyles(t: ReturnType<typeof useTheme>) {
+  return StyleSheet.create({
+    avatar: {
+      width: 36,
+      height: 36,
+      borderRadius: 8,
+      backgroundColor: t.colors.separator,
+      marginRight: 12,
+    },
+    info: { flex: 1 },
+    name: { fontSize: 16, fontWeight: '600', color: t.colors.label },
+    meta: { color: t.colors.secondaryLabel, marginTop: 2 },
+  });
+}

@@ -1,6 +1,12 @@
-import React from 'react';
+import React, { useLayoutEffect } from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useStore } from '@/store/store';
+import { useTheme } from '@/hooks/useTheme';
+import { ListItem } from '@/components/ui/ListItem';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+import { useNavigation, useRouter } from 'expo-router';
+import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
 
 function timeAgo(ts: number): string {
   const diff = Date.now() - ts;
@@ -16,20 +22,62 @@ function timeAgo(ts: number): string {
 
 export default function ActivityScreen() {
   const { state } = useStore();
+  const t = useTheme();
+  const styles = React.useMemo(() => makeStyles(), []);
+  const navigation = useNavigation();
+  const router = useRouter();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <HeaderIconButton
+          name="plus"
+          accessibilityLabel="New recurring expense"
+          accessibilityHint="Create a new recurring expense"
+          onPress={() => router.push('/(tabs)/activity/recurring' as never)}
+        />
+      ),
+    });
+  }, [navigation, router]);
+
+  const iconForType = (type: string) => {
+    switch (type) {
+      case 'expense_added':
+        return 'plus.circle.fill' as const;
+      case 'expense_edited':
+        return 'pencil.circle.fill' as const;
+      case 'expense_deleted':
+        return 'trash.circle.fill' as const;
+      case 'group_created':
+        return 'person.3.fill' as const;
+      case 'group_renamed':
+        return 'textformat' as const;
+      case 'recurring_added':
+      case 'recurring_edited':
+      case 'recurring_deleted':
+        return 'arrow.triangle.2.circlepath' as const;
+      default:
+        return 'clock' as const;
+    }
+  };
+
   return (
     <FlatList
       data={state.activity}
       keyExtractor={(item) => item.id}
       contentInsetAdjustmentBehavior="automatic"
       renderItem={({ item }) => (
-        <View style={styles.row}>
-          <Text style={styles.text}>{item.message}</Text>
-          <Text style={styles.time}>{timeAgo(item.createdAt)}</Text>
-        </View>
+        <ListItem
+          left={<IconSymbol name={iconForType(item.type)} color={t.colors.secondaryLabel} size={20} />}
+          title={<Text style={{ color: t.colors.label, fontSize: 16, fontWeight: '500' }}>{item.message}</Text>}
+          right={<Text style={{ color: t.colors.secondaryLabel }}>{timeAgo(item.createdAt)}</Text>}
+          accessibilityLabel={item.message}
+          accessibilityHint="Activity item"
+        />
       )}
       ListEmptyComponent={
         <View style={{ padding: 16 }}>
-          <Text style={{ color: '#6b7280', textAlign: 'center' }}>No activity yet.</Text>
+          <EmptyState icon="clock" title="No activity yet" message="Your recent activity will appear here as you add expenses and make changes." />
         </View>
       }
       ListFooterComponent={<View style={{ height: 24 }} />}
@@ -37,19 +85,6 @@ export default function ActivityScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    backgroundColor: 'white',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginHorizontal: 16,
-    marginTop: 12,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-  },
-  text: { color: '#111827' },
-  time: { color: '#9ca3af', marginTop: 4, fontSize: 12 },
-});
+function makeStyles() {
+  return StyleSheet.create({});
+}

@@ -12,7 +12,7 @@ export type Group = {
   createdAt: number;
 };
 
-export type SplitType = 'equal'; // future: 'exact' | 'percentage'
+export type SplitType = 'equal' | 'amount' | 'percent';
 
 export type Expense = {
   id: ID;
@@ -25,9 +25,42 @@ export type Expense = {
   createdAt: number;
 };
 
+// Recurring expenses (Phase 3)
+export type RecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
+export type RecurrenceRule = {
+  frequency: RecurrenceFrequency;
+  interval?: number; // every N units, default 1
+  // For monthly/yearly you might specify day of month or weekday in future
+  startDate: number; // timestamp ms
+  endDate?: number; // optional
+  count?: number; // number of occurrences
+};
+
+export type RecurringExpense = {
+  id: ID;
+  groupId: ID;
+  description: string;
+  amount: number;
+  paidBy: ID;
+  splitType: SplitType;
+  shares?: Record<ID, number>;
+  rule: RecurrenceRule;
+  nextOccurrenceAt: number; // computed next fire time
+  active: boolean;
+  createdAt: number;
+};
+
 export type ActivityItem = {
   id: ID;
-  type: 'expense_added' | 'expense_edited' | 'expense_deleted' | 'group_created' | 'group_renamed';
+  type:
+    | 'expense_added'
+    | 'expense_edited'
+    | 'expense_deleted'
+    | 'group_created'
+    | 'group_renamed'
+    | 'recurring_added'
+    | 'recurring_edited'
+    | 'recurring_deleted';
   message: string;
   createdAt: number;
 };
@@ -39,6 +72,7 @@ export type State = {
   groupOrder: ID[]; // ordering for list
   expenses: Record<ID, Expense>;
   activity: ActivityItem[]; // newest first
+  recurring: Record<ID, RecurringExpense>;
 };
 
 export type AddExpensePayload = {
@@ -47,6 +81,7 @@ export type AddExpensePayload = {
   amount: number;
   paidBy?: ID; // default current user
   splitType?: SplitType; // default equal
+  shares?: Record<ID, number>; // for 'amount' or 'percent' splits
 };
 
 export type EditExpensePayload = {
@@ -58,10 +93,35 @@ export type EditExpensePayload = {
   shares?: Record<ID, number>;
 };
 
+export type AddRecurringPayload = {
+  groupId: ID;
+  description: string;
+  amount: number;
+  paidBy?: ID;
+  splitType?: SplitType;
+  shares?: Record<ID, number>;
+  rule: RecurrenceRule;
+};
+
+export type EditRecurringPayload = {
+  id: ID;
+  description?: string;
+  amount?: number;
+  paidBy?: ID;
+  splitType?: SplitType;
+  shares?: Record<ID, number>;
+  rule?: RecurrenceRule;
+  active?: boolean;
+};
+
 export type Action =
   | { type: 'ADD_EXPENSE'; payload: AddExpensePayload }
   | { type: 'EDIT_EXPENSE'; payload: EditExpensePayload }
   | { type: 'DELETE_EXPENSE'; payload: { id: ID } }
   | { type: 'ADD_GROUP'; payload: { name: string; memberIds?: ID[] } }
   | { type: 'RENAME_GROUP'; payload: { id: ID; name: string } }
+  | { type: 'ADD_RECURRING'; payload: AddRecurringPayload }
+  | { type: 'EDIT_RECURRING'; payload: EditRecurringPayload }
+  | { type: 'DELETE_RECURRING'; payload: { id: ID } }
+  | { type: 'TOGGLE_RECURRING_ACTIVE'; payload: { id: ID; active: boolean } }
   | { type: 'HYDRATE'; payload: State };
