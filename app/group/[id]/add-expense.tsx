@@ -1,61 +1,93 @@
 import React from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useStore } from '@/store/store';
+import * as Haptics from 'expo-haptics';
 
 export default function AddExpenseScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [title, setTitle] = React.useState('');
   const [amount, setAmount] = React.useState('');
+  const amountRef = React.useRef<TextInput>(null);
   const { addExpense } = useStore();
 
   const save = () => {
     const value = parseFloat(amount);
     if (!id) return;
     if (!title.trim()) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
       Alert.alert('Title required', 'Please enter a description.');
       return;
     }
     if (isNaN(value) || value <= 0) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
       Alert.alert('Invalid amount', 'Enter a valid amount greater than 0.');
       return;
     }
     addExpense({ groupId: id, description: title.trim(), amount: value, splitType: 'equal' });
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     router.back();
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.field}>
-        <Text style={styles.label}>Title</Text>
-        <TextInput
-          placeholder="Dinner"
-          value={title}
-          onChangeText={setTitle}
-          style={styles.input}
-        />
-      </View>
-      <View style={styles.field}>
-        <Text style={styles.label}>Amount</Text>
-        <TextInput
-          placeholder="0.00"
-          keyboardType="decimal-pad"
-          value={amount}
-          onChangeText={setAmount}
-          style={styles.input}
-        />
-      </View>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.container}
+      >
+        <View style={styles.field}>
+          <Text style={styles.label}>Title</Text>
+          <TextInput
+            placeholder="Dinner"
+            value={title}
+            onChangeText={setTitle}
+            style={styles.input}
+            autoFocus
+            returnKeyType="next"
+            blurOnSubmit={false}
+            onSubmitEditing={() => amountRef.current?.focus()}
+            clearButtonMode="while-editing"
+          />
+        </View>
+        <View style={styles.field}>
+          <Text style={styles.label}>Amount</Text>
+          <TextInput
+            ref={amountRef}
+            placeholder="0.00"
+            keyboardType="decimal-pad"
+            value={amount}
+            onChangeText={setAmount}
+            style={styles.input}
+            returnKeyType="done"
+            clearButtonMode="while-editing"
+          />
+          {(() => {
+            const v = parseFloat(amount);
+            if (!isNaN(v) && v > 0) {
+              return <Text style={styles.helper}>Will add ${v.toFixed(2)}</Text>;
+            }
+            return null;
+          })()}
+        </View>
 
-      <Pressable style={styles.primary} onPress={save}>
-        <Text style={styles.primaryText}>Save</Text>
-      </Pressable>
-    </View>
+        {(() => {
+          const v = parseFloat(amount);
+          const valid = title.trim().length > 0 && !isNaN(v) && v > 0;
+          return (
+            <Pressable style={[styles.primary, !valid && styles.primaryDisabled]} onPress={save} disabled={!valid}>
+              <Text style={styles.primaryText}>Save</Text>
+            </Pressable>
+          );
+        })()}
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#f3f4f6' },
+  container: { padding: 16, backgroundColor: '#f3f4f6', flexGrow: 1 },
   field: { marginBottom: 16 },
   label: { marginBottom: 8, color: '#374151' },
   input: {
@@ -76,5 +108,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
   },
+  primaryDisabled: {
+    backgroundColor: '#9ec9ff',
+  },
   primaryText: { color: 'white', fontWeight: '600', fontSize: 16 },
+  helper: { marginTop: 6, color: '#6b7280' },
 });

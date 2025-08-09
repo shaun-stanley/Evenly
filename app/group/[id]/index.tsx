@@ -3,6 +3,7 @@ import { Alert, ActionSheetIOS, Platform, Pressable, ScrollView, StyleSheet, Tex
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useLayoutEffect, useMemo } from 'react';
 import { useStore, selectGroup, selectExpensesForGroup, computeGroupTotalsForUserInGroup } from '@/store/store';
+import { Swipeable } from 'react-native-gesture-handler';
 
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -70,6 +71,38 @@ export default function GroupDetailScreen() {
     }
   };
 
+  const renderRightActions = (expenseId: string) => (
+    <View style={{ flexDirection: 'row', height: '100%' }}>
+      <Pressable
+        accessibilityLabel="Edit expense"
+        onPress={() => router.push(`/group/${id}/edit-expense?expenseId=${expenseId}`)}
+        style={({ pressed }) => [
+          styles.actionButton,
+          { backgroundColor: '#0a84ff' },
+          pressed && { opacity: 0.7 },
+        ]}
+      >
+        <Text style={styles.actionText}>Edit</Text>
+      </Pressable>
+      <Pressable
+        accessibilityLabel="Delete expense"
+        onPress={() =>
+          Alert.alert('Delete expense?', 'This cannot be undone.', [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Delete', style: 'destructive', onPress: () => deleteExpense(expenseId) },
+          ])
+        }
+        style={({ pressed }) => [
+          styles.actionButton,
+          { backgroundColor: '#ff3b30' },
+          pressed && { opacity: 0.7 },
+        ]}
+      >
+        <Text style={styles.actionText}>Delete</Text>
+      </Pressable>
+    </View>
+  );
+
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic" style={styles.container}>
       <View style={styles.header}>
@@ -107,13 +140,15 @@ export default function GroupDetailScreen() {
           <Text style={styles.muted}>No expenses yet.</Text>
         ) : (
           expenses.map((e) => (
-            <Pressable key={e.id} style={styles.expenseRow} onPress={() => onExpensePress(e.id)}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.expenseTitle}>{e.description}</Text>
-                <Text style={styles.expenseMeta}>Paid by {state.members[e.paidBy]?.name ?? 'Someone'}</Text>
-              </View>
-              <Text style={styles.expenseAmount}>${e.amount.toFixed(2)}</Text>
-            </Pressable>
+            <Swipeable key={e.id} renderRightActions={() => renderRightActions(e.id)} overshootRight={false}>
+              <Pressable style={styles.expenseRow} onPress={() => onExpensePress(e.id)}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.expenseTitle}>{e.description}</Text>
+                  <Text style={styles.expenseMeta}>Paid by {state.members[e.paidBy]?.name ?? 'Someone'}</Text>
+                </View>
+                <Text style={styles.expenseAmount}>${e.amount.toFixed(2)}</Text>
+              </Pressable>
+            </Swipeable>
           ))
         )}
       </View>
@@ -170,4 +205,12 @@ const styles = StyleSheet.create({
   expenseTitle: { fontSize: 16, fontWeight: '500' },
   expenseMeta: { color: '#6b7280', marginTop: 2 },
   expenseAmount: { fontWeight: '600' },
+  actionButton: {
+    width: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+  },
+  actionText: { color: 'white', fontWeight: '600' },
 });
