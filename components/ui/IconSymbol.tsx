@@ -35,6 +35,10 @@ const MAPPING: IconMapping = {
   // Misc used
   'textformat': 'text-fields',
   'arrow.triangle.2.circlepath': 'autorenew',
+  'paperclip': 'attach-file',
+  'camera': 'photo-camera',
+  'ellipsis.circle': 'more-horiz',
+  'tray': 'inbox',
 };
 
 /**

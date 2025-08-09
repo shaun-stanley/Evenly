@@ -251,7 +251,17 @@ export default function GroupDetailScreen() {
               <ListItem
                 title={<Text style={styles.expenseTitle}>{e.description}</Text>}
                 subtitle={<Text style={styles.expenseMeta}>Paid by {state.members[e.paidBy]?.name ?? 'Someone'}</Text>}
-                right={<Text style={styles.expenseAmount}>{formatCurrency(e.amount, { currency: selectCurrencyForGroup(state, e.groupId) })}</Text>}
+                right={
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    {e.attachments && e.attachments.length > 0 ? (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
+                        <IconSymbol name="paperclip" color={t.colors.secondaryLabel} size={16} />
+                        <Text style={styles.attachCount}>{e.attachments.length}</Text>
+                      </View>
+                    ) : null}
+                    <Text style={styles.expenseAmount}>{formatCurrency(e.amount, { currency: selectCurrencyForGroup(state, e.groupId) })}</Text>
+                  </View>
+                }
                 accessibilityLabel={`Expense ${e.description}, ${formatCurrency(e.amount, { currency: selectCurrencyForGroup(state, e.groupId) })}, paid by ${state.members[e.paidBy]?.name ?? 'someone'}`}
                 accessibilityHint="Opens options for this expense"
                 onPress={() => onExpensePress(e.id)}
@@ -305,5 +315,6 @@ function makeStyles(t: Tokens) {
       borderBottomRightRadius: 12,
     },
     actionText: { color: 'white', fontWeight: '600' },
+    attachCount: { marginLeft: 4, color: t.colors.secondaryLabel, fontSize: 12, fontWeight: '600' },
   });
 }

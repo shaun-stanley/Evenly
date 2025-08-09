@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, Modal, Linking } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useStore, selectCurrencyForGroup } from '@/store/store';
 import * as Haptics from 'expo-haptics';
@@ -11,6 +11,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import { Button } from '@/components/ui/Button';
 import type { Attachment } from '@/store/types';
+import { saveAttachmentFile, deleteAttachmentFile } from '@/utils/attachments';
 
 export default function EditExpenseScreen() {
   const { id, expenseId } = useLocalSearchParams<{ id: string; expenseId: string }>();
@@ -26,6 +27,7 @@ export default function EditExpenseScreen() {
   );
   const amountRef = React.useRef<TextInput>(null);
   const [attachments, setAttachments] = React.useState<Attachment[]>(expense?.attachments ?? []);
+  const [viewerIndex, setViewerIndex] = React.useState<number | null>(null);
 
   // Split state
   const [splitType, setSplitType] = React.useState<'equal' | 'amount' | 'percent'>(expense?.splitType ?? 'equal');
@@ -41,8 +43,61 @@ export default function EditExpenseScreen() {
   );
   const currency = selectCurrencyForGroup(state, expense?.groupId);
 
+  const ensureLibraryPermission = async (): Promise<boolean> => {
+    try {
+      const cur = await ImagePicker.getMediaLibraryPermissionsAsync();
+      let status = cur.status;
+      if (status !== 'granted') {
+        const req = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        status = req.status;
+      }
+      if (status !== 'granted') {
+        Alert.alert(
+          'Photos permission needed',
+          'Please allow photo library access in Settings to attach receipts.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openSettings().catch(() => {}), style: 'default' },
+          ],
+        );
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.warn('Permission check failed', e);
+      return true;
+    }
+  };
+
+  const ensureCameraPermission = async (): Promise<boolean> => {
+    try {
+      const cur = await ImagePicker.getCameraPermissionsAsync();
+      let status = cur.status;
+      if (status !== 'granted') {
+        const req = await ImagePicker.requestCameraPermissionsAsync();
+        status = req.status;
+      }
+      if (status !== 'granted') {
+        Alert.alert(
+          'Camera permission needed',
+          'Please allow camera access in Settings to take a photo.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openSettings().catch(() => {}), style: 'default' },
+          ],
+        );
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.warn('Permission check failed', e);
+      return true;
+    }
+  };
+
   const pickImages = async () => {
     try {
+      if (!(await ensureLibraryPermission())) return;
       const res = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsMultipleSelection: true,
@@ -69,7 +124,31 @@ export default function EditExpenseScreen() {
     setAttachments((prev) => prev.filter((a) => a.id !== id));
   };
 
-  const save = () => {
+  const takePhoto = async () => {
+    try {
+      if (!(await ensureCameraPermission())) return;
+      const res = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.85,
+      });
+      if (!res.canceled) {
+        const a = res.assets[0] as ImagePicker.ImagePickerAsset;
+        const att: Attachment = {
+          id: `att_${Math.random().toString(36).slice(2, 8)}_${Date.now().toString(36)}`,
+          uri: a.uri,
+          type: a.mimeType,
+          width: a.width,
+          height: a.height,
+          createdAt: Date.now(),
+        };
+        setAttachments((prev) => [...prev, att]);
+      }
+    } catch (e) {
+      console.warn('Camera failed', e);
+    }
+  };
+
+  const save = async () => {
     if (!expense || !id) return;
     const value = amountCents / 100;
     if (!title.trim()) {
@@ -88,7 +167,17 @@ export default function EditExpenseScreen() {
         : splitType === 'percent'
         ? percentShares
         : undefined;
-    editExpense({ id: expense.id, description: title.trim(), amount: value, splitType, shares, attachments });
+    // Persist any new attachments and cleanup removed ones
+    let persisted = attachments;
+    try {
+      persisted = await Promise.all(attachments.map((a) => saveAttachmentFile(a)));
+      const old = expense.attachments ?? [];
+      const removed = old.filter((o) => !persisted.find((p) => p.id === o.id));
+      await Promise.all(removed.map((r) => deleteAttachmentFile(r.uri)));
+    } catch (e) {
+      console.warn('Persist/cleanup attachments failed', e);
+    }
+    editExpense({ id: expense.id, description: title.trim(), amount: value, splitType, shares, attachments: persisted });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     router.back();
   };
@@ -130,15 +219,17 @@ export default function EditExpenseScreen() {
           <View style={{ gap: 12 }}>
             {attachments.length > 0 ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
-                {attachments.map((att) => (
+                {attachments.map((att, idx) => (
                   <View key={att.id} style={{ position: 'relative' }}>
-                    <Image
-                      source={{ uri: att.uri }}
-                      style={{ width: 88, height: 88, borderRadius: 12, backgroundColor: t.colors.fill }}
-                      contentFit="cover"
-                      accessible
-                      accessibilityLabel="Attachment thumbnail"
-                    />
+                    <Pressable onPress={() => setViewerIndex(idx)} accessibilityRole="imagebutton" accessibilityLabel="View attachment">
+                      <Image
+                        source={{ uri: att.uri }}
+                        style={{ width: 88, height: 88, borderRadius: 12, backgroundColor: t.colors.fill }}
+                        contentFit="cover"
+                        accessible
+                        accessibilityLabel="Attachment thumbnail"
+                      />
+                    </Pressable>
                     <Pressable
                       onPress={() => removeAttachment(att.id)}
                       accessibilityRole="button"
@@ -163,9 +254,26 @@ export default function EditExpenseScreen() {
                 ))}
               </ScrollView>
             ) : null}
-            <Button title="Add Photo" icon="plus" onPress={pickImages} variant="gray" />
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <Button title="Add Photo" icon="plus" onPress={pickImages} variant="gray" />
+              <Button title="Take Photo" icon="camera" onPress={takePhoto} variant="gray" />
+            </View>
           </View>
         </FormField>
+
+        <Modal visible={viewerIndex !== null} transparent animationType="fade" onRequestClose={() => setViewerIndex(null)}>
+          <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', alignItems: 'center', justifyContent: 'center' }} onPress={() => setViewerIndex(null)}>
+            {viewerIndex !== null && attachments[viewerIndex] ? (
+              <Image
+                source={{ uri: attachments[viewerIndex].uri }}
+                style={{ width: '90%', height: '80%' }}
+                contentFit="contain"
+                accessible
+                accessibilityLabel="Full-size attachment"
+              />
+            ) : null}
+          </Pressable>
+        </Modal>
         <FormField
           label="Split"
           helper={splitType === 'equal' ? 'Split equally among members' : splitType === 'amount' ? 'Enter amounts per person (we will normalize to total)' : 'Enter percentage per person (we will normalize to 100%)'}

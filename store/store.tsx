@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useReducer, useRe
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Action, ActivityItem, AddExpensePayload, Expense, Group, ID, State, EditExpensePayload, AddRecurringPayload, EditRecurringPayload, RecurringExpense, RecurrenceRule } from './types';
 import { formatCurrency } from '@/utils/currency';
+import { deleteAttachmentsForExpense } from '@/utils/attachments';
 
 const STORAGE_KEY = '@evenly_state_v1';
 const OLD_STORAGE_KEY = '@splitwise_ios_state_v1';
@@ -121,7 +122,7 @@ function reducer(state: State, action: Action): State {
       const activity: ActivityItem = {
         id: genId('act'),
         type: 'expense_added',
-        message: `Added “${description}” ${formatCurrency(amount, { currency })} in ${state.groups[groupId].name}`,
+        message: `Added “${description}” ${formatCurrency(amount, { currency })} in ${state.groups[groupId].name}${(action.payload as any).attachments?.length ? ` · ${(action.payload as any).attachments.length} attachment${(action.payload as any).attachments.length === 1 ? '' : 's'}` : ''}`,
         createdAt: Date.now(),
       };
       return {
@@ -139,7 +140,7 @@ function reducer(state: State, action: Action): State {
       const activity: ActivityItem = {
         id: genId('act'),
         type: 'expense_edited',
-        message: `Edited “${next.description}” ${formatCurrency(next.amount, { currency })} in ${state.groups[next.groupId]?.name ?? 'group'}`,
+        message: `Edited “${next.description}” ${formatCurrency(next.amount, { currency })} in ${state.groups[next.groupId]?.name ?? 'group'}${next.attachments?.length ? ` · ${next.attachments.length} attachment${next.attachments.length === 1 ? '' : 's'}` : ''}`,
         createdAt: Date.now(),
       };
       return {
@@ -321,8 +322,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const editExpense = (payload: EditExpensePayload) =>
     dispatch({ type: 'EDIT_EXPENSE', payload });
 
-  const deleteExpense = (id: ID) =>
+  const deleteExpense = (id: ID) => {
+    const exp = state.expenses[id];
     dispatch({ type: 'DELETE_EXPENSE', payload: { id } });
+    // Fire-and-forget cleanup of persisted files
+    if (exp) deleteAttachmentsForExpense(exp).catch((e) => console.warn('Failed to cleanup attachments', e));
+  };
 
   const renameGroup = (id: ID, name: string) =>
     dispatch({ type: 'RENAME_GROUP', payload: { id, name } });
