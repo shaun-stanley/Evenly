@@ -66,11 +66,13 @@ export default function ActivityScreen() {
       data={state.activity}
       keyExtractor={(item) => item.id}
       contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={{ paddingBottom: 24, paddingTop: 12 }}
       renderItem={({ item }) => (
         <ListItem
           left={<IconSymbol name={iconForType(item.type)} color={t.colors.secondaryLabel} size={20} />}
           title={<Text style={{ color: t.colors.label, fontSize: 16, fontWeight: '500' }}>{item.message}</Text>}
           right={<Text style={{ color: t.colors.secondaryLabel }}>{timeAgo(item.createdAt)}</Text>}
+          style={{ marginHorizontal: 16, marginTop: 12 }}
           accessibilityLabel={item.message}
           accessibilityHint="Activity item"
         />

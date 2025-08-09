@@ -97,12 +97,13 @@ export default function NewRecurringScreen() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', default: undefined })} style={{ flex: 1, backgroundColor: t.colors.background }}>
-      <ScrollView contentInsetAdjustmentBehavior="automatic">
+      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingBottom: 24 }}>
         <Card style={{ marginHorizontal: 16, marginTop: 16 }}>
           <ListItem
             title={<Text style={{ color: t.colors.label, fontWeight: '600' }}>Group</Text>}
             right={<Text style={{ color: t.colors.secondaryLabel }}>{state.groups[groupId!]?.name}</Text>}
             showChevron
+            inset={false}
             onPress={onPickGroup}
             accessibilityLabel="Choose group"
           />

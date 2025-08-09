@@ -6,6 +6,7 @@ import { useStore, selectGroupsArray } from '@/store/store';
 import { useTheme } from '@/hooks/useTheme';
 import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
 import { ListItem } from '@/components/ui/ListItem';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 import { EmptyState } from '@/components/ui/EmptyState';
 
 export default function GroupsScreen() {
@@ -36,18 +37,23 @@ export default function GroupsScreen() {
       data={groups}
       keyExtractor={(item) => item.id}
       contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={{ paddingBottom: 24, paddingTop: 12 }}
       renderItem={({ item }) => (
         <ListItem
           title={<Text style={styles.name}>{item.name}</Text>}
           subtitle={<Text style={styles.meta}>{item.memberIds.length} members</Text>}
-          left={<View style={styles.avatar} />}
+          left={
+            <View style={styles.avatarCircle}>
+              <IconSymbol name="person.3" color={t.colors.secondaryLabel} size={18} />
+            </View>
+          }
           showChevron
           accessibilityLabel={`Open group ${item.name}`}
           accessibilityHint="Opens the group details"
           onPress={() => router.push(`/group/${item.id}`)}
         />
       )}
-      ListEmptyComponent={<EmptyState title="No groups yet" message="Tap Add to create your first group." />}
+      ListEmptyComponent={<EmptyState icon="person.3" title="No groups yet" message="Tap Add to create your first group." />}
       ListFooterComponent={<View style={{ height: 24 }} />}
     />
   );
@@ -55,12 +61,14 @@ export default function GroupsScreen() {
 
 function makeStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    avatar: {
+    avatarCircle: {
       width: 36,
       height: 36,
-      borderRadius: 8,
+      borderRadius: 18,
       backgroundColor: t.colors.separator,
       marginRight: 12,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     info: { flex: 1 },
     name: { fontSize: 16, fontWeight: '600', color: t.colors.label },

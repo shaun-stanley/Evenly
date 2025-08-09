@@ -15,6 +15,7 @@ export type ListItemProps = {
   disabled?: boolean;
   testID?: string;
   enableHaptics?: boolean;
+  inset?: boolean; // controls outer margins when pressable
   accessibilityLabel?: string;
   accessibilityHint?: string;
   accessibilityRole?: AccessibilityRole;
@@ -31,6 +32,7 @@ export function ListItem({
   disabled = false,
   testID,
   enableHaptics = true,
+  inset = true,
   accessibilityLabel,
   accessibilityHint,
   accessibilityRole,
@@ -83,7 +85,7 @@ export function ListItem({
           }
           onPress();
         }}
-        style={({ pressed }) => [styles.pressable, pressed && { opacity: 0.6 }]}
+        style={({ pressed }) => [styles.pressable, !inset && { marginHorizontal: 0, marginTop: 0 }, pressed && { opacity: 0.6 }]}
       >
         {Content}
       </Pressable>

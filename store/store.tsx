@@ -3,7 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Action, ActivityItem, AddExpensePayload, Expense, Group, ID, State, EditExpensePayload, AddRecurringPayload, EditRecurringPayload, RecurringExpense, RecurrenceRule } from './types';
 import { formatCurrency } from '@/utils/currency';
 
-const STORAGE_KEY = '@splitwise_ios_state_v1';
+const STORAGE_KEY = '@evenly_state_v1';
+const OLD_STORAGE_KEY = '@splitwise_ios_state_v1';
 
 function genId(prefix: string = 'id'): ID {
   return `${prefix}_${Math.random().toString(36).slice(2, 8)}_${Date.now().toString(36)}`;
@@ -248,11 +249,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const hydratedRef = useRef(false);
   const [hydrated, setHydrated] = React.useState(false);
 
-  // hydrate
+  // hydrate (with fallback from old key)
   useEffect(() => {
     (async () => {
       try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+        let raw = await AsyncStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          const legacy = await AsyncStorage.getItem(OLD_STORAGE_KEY);
+          if (legacy) {
+            raw = legacy;
+            // write forward to new key
+            await AsyncStorage.setItem(STORAGE_KEY, legacy);
+            // optional: remove old key
+            await AsyncStorage.removeItem(OLD_STORAGE_KEY).catch(() => {});
+          }
+        }
         if (raw) {
           const parsed: State = JSON.parse(raw);
           dispatch({ type: 'HYDRATE', payload: parsed });

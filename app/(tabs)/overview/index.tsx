@@ -26,7 +26,7 @@ export default function OverviewScreen() {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: 'Splitwise',
+      title: 'Evenly',
       headerRight: () => (
         <HeaderIconButton
           name="plus"
@@ -88,10 +88,32 @@ export default function OverviewScreen() {
     else router.push('/(tabs)/groups');
   };
 
+  const iconForType = (type: string) => {
+    switch (type) {
+      case 'expense_added':
+        return 'plus.circle.fill' as const;
+      case 'expense_edited':
+        return 'pencil.circle.fill' as const;
+      case 'expense_deleted':
+        return 'trash.circle.fill' as const;
+      case 'group_created':
+        return 'person.3.fill' as const;
+      case 'group_renamed':
+        return 'textformat' as const;
+      case 'recurring_added':
+      case 'recurring_edited':
+      case 'recurring_deleted':
+        return 'arrow.triangle.2.circlepath' as const;
+      default:
+        return 'clock' as const;
+    }
+  };
+
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
       style={styles.container}
+      contentContainerStyle={{ paddingBottom: 24 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       <Card style={styles.balanceCard}>
@@ -127,6 +149,7 @@ export default function OverviewScreen() {
       {state.activity.slice(0, 5).map((item) => (
         <ListItem
           key={item.id}
+          left={<IconSymbol name={iconForType(item.type)} color={t.colors.secondaryLabel} size={18} />}
           title={<Text style={styles.activityTitle}>{item.message}</Text>}
           right={<Text style={styles.activityDate}>{dateFmt.format(new Date(item.createdAt))}</Text>}
           onPress={() => router.push('/(tabs)/activity')}
@@ -158,6 +181,18 @@ export default function OverviewScreen() {
         return (
           <ListItem
             key={g.id}
+            left={
+              <View style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: t.colors.separator,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+                <IconSymbol name="person.3" color={t.colors.secondaryLabel} size={18} />
+              </View>
+            }
             title={<Text style={styles.groupName}>{g.name}</Text>}
             subtitle={<Text style={styles.groupMeta}>{g.memberIds.length} members</Text>}
             showChevron
