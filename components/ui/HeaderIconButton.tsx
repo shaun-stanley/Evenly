@@ -8,9 +8,10 @@ type Props = {
   onPress: () => void;
   accessibilityLabel?: string;
   accessibilityHint?: string;
+  disabled?: boolean;
 };
 
-export function HeaderIconButton({ name, onPress, accessibilityLabel, accessibilityHint }: Props) {
+export function HeaderIconButton({ name, onPress, accessibilityLabel, accessibilityHint, disabled }: Props) {
   const t = useTheme();
   return (
     <Pressable
@@ -19,10 +20,14 @@ export function HeaderIconButton({ name, onPress, accessibilityLabel, accessibil
       accessibilityHint={accessibilityHint}
       hitSlop={8}
       onPress={onPress}
-      style={({ pressed }) => [styles.base, pressed && { opacity: 0.6 }]}
+      disabled={disabled}
+      style={({ pressed }) => [
+        styles.base,
+        disabled ? { opacity: 0.4 } : pressed ? { opacity: 0.6 } : null,
+      ]}
     >
       <View style={styles.touchTarget}>
-        <IconSymbol name={name} color={t.colors.tint} size={22} />
+        <IconSymbol name={name} color={disabled ? t.colors.secondaryLabel : t.colors.tint} size={22} />
       </View>
     </Pressable>
   );

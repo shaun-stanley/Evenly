@@ -5,29 +5,37 @@ import { SymbolWeight, SymbolView, SymbolViewProps } from 'expo-symbols';
 import { ComponentProps } from 'react';
 import { OpaqueColorValue, Platform, type StyleProp, type TextStyle } from 'react-native';
 
-type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
-type IconSymbolName = keyof typeof MAPPING;
+type IconMapping = Partial<Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>>;
+export type IconSymbolName = SymbolViewProps['name'];
 
 /**
  * Add your SF Symbols to Material Icons mappings here.
  * - see Material Icons in the [Icons Directory](https://icons.expo.fyi).
  * - see SF Symbols in the [SF Symbols](https://developer.apple.com/sf-symbols/) app.
  */
-const MAPPING = {
+const MAPPING: IconMapping = {
   'house.fill': 'home',
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
   // Common actions
   'pencil': 'edit',
+  'pencil.circle.fill': 'edit',
   'trash': 'delete',
+  'trash.circle.fill': 'delete',
   'plus.circle.fill': 'add-circle',
   'plus': 'add',
+  'checkmark': 'check',
   // Tabs
   'chart.pie.fill': 'pie-chart',
+  'person.3': 'group',
   'person.3.fill': 'group',
+  'clock': 'schedule',
   'clock.fill': 'schedule',
-} as IconMapping;
+  // Misc used
+  'textformat': 'text-fields',
+  'arrow.triangle.2.circlepath': 'autorenew',
+};
 
 /**
  * An icon component that uses native SF Symbols on iOS, and Material Icons on Android and web.
@@ -49,5 +57,5 @@ export function IconSymbol({
   if (Platform.OS === 'ios') {
     return <SymbolView name={name} tintColor={color} size={size} style={style as any} />;
   }
-  return <MaterialIcons color={color} size={size} name={MAPPING[name]} style={style} />;
+  return <MaterialIcons color={color} size={size} name={MAPPING[name] ?? 'circle'} style={style} />;
 }

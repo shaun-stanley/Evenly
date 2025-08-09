@@ -1,17 +1,28 @@
 import { Stack } from 'expo-router';
-import { useTheme } from '@/hooks/useTheme';
+import { useColorScheme } from 'react-native';
 
 export default function OverviewLayout() {
-  const t = useTheme();
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const colors = isDark
+    ? { tint: '#0a84ff', label: '#ffffff', background: '#000000' }
+    : { tint: '#007aff', label: '#1c1c1e', background: '#f2f2f7' };
   return (
     <Stack screenOptions={{
-      headerLargeTitle: false,
-      headerTintColor: t.colors.tint,
-      headerTitleStyle: { color: t.colors.label, fontSize: 17, fontWeight: '600' },
+      headerLargeTitle: true,
+      headerTintColor: colors.tint,
+      headerTitleStyle: { color: colors.label, fontSize: 17, fontWeight: '600' },
       headerShadowVisible: false,
-      headerStyle: { backgroundColor: t.colors.background },
+      headerTransparent: false,
+      headerBackground: undefined,
+      // Native blur on iOS for UINavigationBar
+      headerBlurEffect: 'systemChromeMaterial',
+      headerStyle: { backgroundColor: colors.background },
     }}>
-      <Stack.Screen name="index" options={{ title: 'Overview' }} />
+      <Stack.Screen
+        name="index"
+        options={{ title: 'Evenly' }}
+      />
     </Stack>
   );
 }

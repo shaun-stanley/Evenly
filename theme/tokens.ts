@@ -1,16 +1,18 @@
 // iOS 18-inspired design tokens
-// Light/Dark approximations using Apple semantic colors.
+// Use iOS semantic colors when available for robust dark mode.
+import { OpaqueColorValue, Platform, PlatformColor } from 'react-native';
 
 export type ColorTokens = {
-  background: string;
-  card: string;
-  label: string;
-  secondaryLabel: string;
-  separator: string;
-  tint: string; // systemBlue
-  success: string; // systemGreen
-  danger: string; // systemRed
-  warning: string; // systemOrange
+  background: string | OpaqueColorValue;
+  card: string | OpaqueColorValue;
+  label: string | OpaqueColorValue;
+  secondaryLabel: string | OpaqueColorValue;
+  separator: string | OpaqueColorValue;
+  fill: string | OpaqueColorValue; // tertiarySystemFill
+  tint: string | OpaqueColorValue; // systemBlue
+  success: string | OpaqueColorValue; // systemGreen
+  danger: string | OpaqueColorValue; // systemRed
+  warning: string | OpaqueColorValue; // systemOrange
 };
 
 export type SpacingTokens = {
@@ -44,17 +46,20 @@ export type Tokens = {
   typography: TypographyTokens;
 };
 
+const isiOS = Platform.OS === 'ios';
+
 export const lightTokens: Tokens = {
   colors: {
-    background: '#f2f2f7', // systemGroupedBackground
-    card: '#ffffff',
-    label: '#1c1c1e', // label
-    secondaryLabel: '#8e8e93',
-    separator: '#e5e5ea',
-    tint: '#007aff', // systemBlue
-    success: '#34c759', // systemGreen
-    danger: '#ff3b30', // systemRed
-    warning: '#ff9f0a', // systemOrange
+    background: isiOS ? PlatformColor('systemGroupedBackground') : '#f2f2f7',
+    card: isiOS ? PlatformColor('secondarySystemGroupedBackground') : '#ffffff',
+    label: isiOS ? PlatformColor('label') : '#1c1c1e',
+    secondaryLabel: isiOS ? PlatformColor('secondaryLabel') : '#8e8e93',
+    separator: isiOS ? PlatformColor('separator') : '#e5e5ea',
+    fill: isiOS ? PlatformColor('tertiarySystemFill') : '#f2f2f7',
+    tint: isiOS ? PlatformColor('systemBlue') : '#007aff',
+    success: isiOS ? PlatformColor('systemGreen') : '#34c759',
+    danger: isiOS ? PlatformColor('systemRed') : '#ff3b30',
+    warning: isiOS ? PlatformColor('systemOrange') : '#ff9f0a',
   },
   spacing: { xs: 4, s: 8, m: 12, l: 16, xl: 20, xxl: 24 },
   radius: { sm: 8, md: 12, lg: 16 },
@@ -70,15 +75,16 @@ export const lightTokens: Tokens = {
 
 export const darkTokens: Tokens = {
   colors: {
-    background: '#000000', // systemBackground dark
-    card: '#1c1c1e', // secondarySystemBackground dark
-    label: '#ffffff',
-    secondaryLabel: '#8e8e93',
-    separator: '#2c2c2e',
-    tint: '#0a84ff', // systemBlue dark
-    success: '#30d158',
-    danger: '#ff453a',
-    warning: '#ff9f0a',
+    background: isiOS ? PlatformColor('systemGroupedBackground') : '#000000',
+    card: isiOS ? PlatformColor('secondarySystemGroupedBackground') : '#1c1c1e',
+    label: isiOS ? PlatformColor('label') : '#ffffff',
+    secondaryLabel: isiOS ? PlatformColor('secondaryLabel') : '#8e8e93',
+    separator: isiOS ? PlatformColor('separator') : '#2c2c2e',
+    fill: isiOS ? PlatformColor('tertiarySystemFill') : '#2c2c2e',
+    tint: isiOS ? PlatformColor('systemBlue') : '#0a84ff',
+    success: isiOS ? PlatformColor('systemGreen') : '#30d158',
+    danger: isiOS ? PlatformColor('systemRed') : '#ff453a',
+    warning: isiOS ? PlatformColor('systemOrange') : '#ff9f0a',
   },
   spacing: { xs: 4, s: 8, m: 12, l: 16, xl: 20, xxl: 24 },
   radius: { sm: 8, md: 12, lg: 16 },

@@ -11,20 +11,33 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
 
   const navTheme: NavTheme = useMemo(() => {
     const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
+    // React Navigation theme expects string colors. Use hex fallbacks aligned with tokens.
+    const light = {
+      primary: '#007aff',
+      background: '#f2f2f7',
+      card: '#ffffff',
+      text: '#1c1c1e',
+      border: '#e5e5ea',
+      notification: '#007aff',
+    } as const;
+    const dark = {
+      primary: '#0a84ff',
+      background: '#000000',
+      card: '#1c1c1e',
+      text: '#ffffff',
+      border: '#2c2c2e',
+      notification: '#0a84ff',
+    } as const;
+    const palette = scheme === 'dark' ? dark : light;
     return {
       ...base,
       dark: scheme === 'dark',
       colors: {
         ...base.colors,
-        primary: tokens.colors.tint,
-        background: tokens.colors.background,
-        card: tokens.colors.card,
-        text: tokens.colors.label,
-        border: tokens.colors.separator,
-        notification: tokens.colors.tint,
+        ...palette,
       },
     } as NavTheme;
-  }, [scheme, tokens]);
+  }, [scheme]);
 
   const value = useMemo(() => ({ tokens, navTheme }), [tokens, navTheme]);
 

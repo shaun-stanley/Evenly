@@ -65,6 +65,10 @@ export type ActivityItem = {
   createdAt: number;
 };
 
+export type Settings = {
+  currency: string; // ISO 4217 code e.g. 'USD'
+};
+
 export type State = {
   currentMemberId: ID;
   members: Record<ID, Member>;
@@ -73,6 +77,7 @@ export type State = {
   expenses: Record<ID, Expense>;
   activity: ActivityItem[]; // newest first
   recurring: Record<ID, RecurringExpense>;
+  settings: Settings;
 };
 
 export type AddExpensePayload = {
@@ -124,4 +129,5 @@ export type Action =
   | { type: 'EDIT_RECURRING'; payload: EditRecurringPayload }
   | { type: 'DELETE_RECURRING'; payload: { id: ID } }
   | { type: 'TOGGLE_RECURRING_ACTIVE'; payload: { id: ID; active: boolean } }
+  | { type: 'SET_CURRENCY'; payload: { currency: string } }
   | { type: 'HYDRATE'; payload: State };

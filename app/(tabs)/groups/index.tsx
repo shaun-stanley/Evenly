@@ -6,7 +6,8 @@ import { useStore, selectGroupsArray } from '@/store/store';
 import { useTheme } from '@/hooks/useTheme';
 import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
 import { ListItem } from '@/components/ui/ListItem';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { AvatarIcon } from '@/components/ui/AvatarIcon';
+import { colorForGroup } from '@/utils/iconColors';
 import { EmptyState } from '@/components/ui/EmptyState';
 
 export default function GroupsScreen() {
@@ -42,11 +43,7 @@ export default function GroupsScreen() {
         <ListItem
           title={<Text style={styles.name}>{item.name}</Text>}
           subtitle={<Text style={styles.meta}>{item.memberIds.length} members</Text>}
-          left={
-            <View style={styles.avatarCircle}>
-              <IconSymbol name="person.3" color={t.colors.secondaryLabel} size={18} />
-            </View>
-          }
+          left={<AvatarIcon name="person.3" bgColor={colorForGroup(item.id)} size={18} containerSize={36} />}
           showChevron
           accessibilityLabel={`Open group ${item.name}`}
           accessibilityHint="Opens the group details"
@@ -61,15 +58,6 @@ export default function GroupsScreen() {
 
 function makeStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    avatarCircle: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: t.colors.separator,
-      marginRight: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
     info: { flex: 1 },
     name: { fontSize: 16, fontWeight: '600', color: t.colors.label },
     meta: { color: t.colors.secondaryLabel, marginTop: 2 },

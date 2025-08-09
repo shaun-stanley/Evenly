@@ -11,6 +11,8 @@ import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
 import { ListItem } from '@/components/ui/ListItem';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { centsFromText, textFromCents, formatCurrency } from '@/utils/currency';
 
 export default function NewRecurringScreen() {
   const { state, addRecurring } = useStore();
@@ -20,12 +22,12 @@ export default function NewRecurringScreen() {
   const groups = selectGroupsArray(state);
 
   const [description, setDescription] = React.useState('');
-  const [amount, setAmount] = React.useState<string>('');
+  const [amountCents, setAmountCents] = React.useState(0);
   const [groupId, setGroupId] = React.useState(groups[0]?.id);
   const [frequency, setFrequency] = React.useState<RecurrenceFrequency>('monthly');
   const [interval, setInterval] = React.useState<string>('1');
 
-  const canSave = description.trim().length > 0 && Number(amount) > 0 && !!groupId;
+  const canSave = description.trim().length > 0 && amountCents > 0 && !!groupId;
 
   const onPickGroup = () => {
     if (Platform.OS === 'ios') {
@@ -47,8 +49,8 @@ export default function NewRecurringScreen() {
 
   const onSave = React.useCallback(() => {
     if (!canSave || !groupId) return;
-    const n = Number(amount);
-    const iv = Math.max(1, Number(interval) || 1);
+    const n = amountCents / 100;
+    const iv = Math.max(1, parseInt(interval || '1', 10) || 1);
     addRecurring({
       groupId,
       description: description.trim(),
@@ -59,7 +61,7 @@ export default function NewRecurringScreen() {
     });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     router.back();
-  }, [addRecurring, amount, canSave, description, frequency, groupId, interval, router, state.currentMemberId]);
+  }, [addRecurring, amountCents, canSave, description, frequency, groupId, interval, router, state.currentMemberId]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -70,10 +72,11 @@ export default function NewRecurringScreen() {
           accessibilityLabel="Save recurring expense"
           accessibilityHint="Saves the recurring expense"
           onPress={onSave}
+          disabled={!canSave}
         />
       ),
     });
-  }, [navigation, onSave]);
+  }, [navigation, onSave, canSave]);
 
   if (groups.length === 0) {
     return (
@@ -83,13 +86,7 @@ export default function NewRecurringScreen() {
           title="No groups yet"
           message="Create a group first to add a recurring expense."
         >
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.push('/(tabs)/groups/create' as never)}
-            style={({ pressed }) => [{ backgroundColor: t.colors.tint, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 }, pressed && { opacity: 0.8 }]}
-          >
-            <Text style={{ color: '#fff', fontWeight: '600' }}>Create a group</Text>
-          </Pressable>
+          <Button title="Create a group" variant="filled" onPress={() => router.push('/(tabs)/groups/create' as never)} />
         </EmptyState>
       </View>
     );
@@ -126,12 +123,19 @@ export default function NewRecurringScreen() {
               }}
             />
           </FormField>
-          <FormField label="Amount">
+          <FormField
+            label="Amount"
+            helper={(() => {
+              const v = amountCents / 100;
+              if (!isNaN(v) && v > 0) return <Text style={{ color: t.colors.secondaryLabel }}>Will create {formatCurrency(v)} on schedule</Text>;
+              return null;
+            })()}
+          >
             <TextInput
-              value={amount}
-              onChangeText={setAmount}
+              value={textFromCents(amountCents)}
+              onChangeText={(tx) => setAmountCents(centsFromText(tx))}
               placeholder="0.00"
-              keyboardType="decimal-pad"
+              keyboardType="number-pad"
               returnKeyType="done"
               style={{
                 backgroundColor: t.colors.card,
@@ -174,10 +178,10 @@ export default function NewRecurringScreen() {
               );
             })}
           </View>
-          <FormField label="Every" helper={`Applies every ${interval || '1'} ${frequency}${Number(interval || '1') > 1 ? 's' : ''}.`}>
+          <FormField label="Every" helper={`Applies every ${interval || '1'} ${frequency}${(parseInt(interval || '1', 10) || 1) > 1 ? 's' : ''}.`}>
             <TextInput
               value={interval}
-              onChangeText={setInterval}
+              onChangeText={(tx) => setInterval(tx.replace(/\D/g, ''))}
               placeholder="1"
               keyboardType="number-pad"
               style={{
@@ -192,6 +196,17 @@ export default function NewRecurringScreen() {
             />
           </FormField>
         </Card>
+
+        {/* Primary save action */}
+        <View style={{ marginHorizontal: 16 }}>
+          <Button
+            title="Save recurring"
+            variant="filled"
+            onPress={onSave}
+            disabled={!canSave}
+            accessibilityLabel="Save recurring expense"
+          />
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

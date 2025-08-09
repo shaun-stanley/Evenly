@@ -9,7 +9,10 @@ import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { AvatarIcon } from '@/components/ui/AvatarIcon';
+import { colorForActivity, colorForGroup } from '@/utils/iconColors';
 import { formatCurrency } from '@/utils/currency';
+import { Button } from '@/components/ui/Button';
 
 export default function OverviewScreen() {
   const router = useRouter();
@@ -27,14 +30,7 @@ export default function OverviewScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       title: 'Evenly',
-      headerRight: () => (
-        <HeaderIconButton
-          name="plus"
-          accessibilityLabel="Add group"
-          accessibilityHint="Creates a new group"
-          onPress={() => router.push({ pathname: '/(tabs)/groups/create' } as never)}
-        />
-      ),
+      headerRight: undefined,
     });
   }, [navigation, router]);
 
@@ -91,13 +87,13 @@ export default function OverviewScreen() {
   const iconForType = (type: string) => {
     switch (type) {
       case 'expense_added':
-        return 'plus.circle.fill' as const;
+        return 'plus' as const;
       case 'expense_edited':
-        return 'pencil.circle.fill' as const;
+        return 'pencil' as const;
       case 'expense_deleted':
-        return 'trash.circle.fill' as const;
+        return 'trash' as const;
       case 'group_created':
-        return 'person.3.fill' as const;
+        return 'person.3' as const;
       case 'group_renamed':
         return 'textformat' as const;
       case 'recurring_added':
@@ -114,6 +110,7 @@ export default function OverviewScreen() {
       contentInsetAdjustmentBehavior="automatic"
       style={styles.container}
       contentContainerStyle={{ paddingBottom: 24 }}
+      scrollEventThrottle={16}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
       <Card style={styles.balanceCard}>
@@ -123,33 +120,15 @@ export default function OverviewScreen() {
       </Card>
 
       <View style={styles.ctaRow}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Add expense"
-          accessibilityHint="Create a new expense in a group"
-          onPress={handleAddExpense}
-          style={({ pressed }) => [styles.ctaButton, { backgroundColor: t.colors.tint }, pressed && { opacity: 0.8 }]}
-        >
-          <IconSymbol name="plus" color="#fff" size={16} />
-          <Text style={styles.ctaText}>Add expense</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Settle up"
-          accessibilityHint="Record payments to settle balances"
-          onPress={handleSettleUp}
-          style={({ pressed }) => [styles.ctaButton, { backgroundColor: t.colors.separator }, pressed && { opacity: 0.8 }]}
-        >
-          <IconSymbol name="checkmark" color={t.colors.label} size={16} />
-          <Text style={[styles.ctaText, { color: t.colors.label }]}>Settle up</Text>
-        </Pressable>
+        <Button title="Add expense" icon="plus" variant="filled" onPress={handleAddExpense} style={{ flex: 1 }} />
+        <Button title="Settle up" icon="checkmark" variant="gray" onPress={handleSettleUp} style={{ flex: 1 }} />
       </View>
 
       <Text style={styles.sectionHeader}>RECENT ACTIVITY</Text>
       {state.activity.slice(0, 5).map((item) => (
         <ListItem
           key={item.id}
-          left={<IconSymbol name={iconForType(item.type)} color={t.colors.secondaryLabel} size={18} />}
+          left={<AvatarIcon name={iconForType(item.type)} bgColor={colorForActivity(item.type)} size={18} containerSize={36} />}
           title={<Text style={styles.activityTitle}>{item.message}</Text>}
           right={<Text style={styles.activityDate}>{dateFmt.format(new Date(item.createdAt))}</Text>}
           onPress={() => router.push('/(tabs)/activity')}
@@ -181,18 +160,7 @@ export default function OverviewScreen() {
         return (
           <ListItem
             key={g.id}
-            left={
-              <View style={{
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: t.colors.separator,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                <IconSymbol name="person.3" color={t.colors.secondaryLabel} size={18} />
-              </View>
-            }
+            left={<AvatarIcon name="person.3" bgColor={colorForGroup(g.id)} size={18} containerSize={36} />}
             title={<Text style={styles.groupName}>{g.name}</Text>}
             subtitle={<Text style={styles.groupMeta}>{g.memberIds.length} members</Text>}
             showChevron
@@ -225,7 +193,7 @@ export default function OverviewScreen() {
 function makeStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1 },
-    balanceCard: { marginHorizontal: 16, marginTop: 16 },
+    balanceCard: { marginHorizontal: 16, marginTop: 0 },
     infoCard: { marginHorizontal: 16, marginTop: 8 },
     balanceLabel: { color: t.colors.secondaryLabel, fontSize: 12, fontWeight: '700', letterSpacing: 0.3 },
     balanceAmount: { fontSize: 34, fontWeight: '700', marginTop: 4 },

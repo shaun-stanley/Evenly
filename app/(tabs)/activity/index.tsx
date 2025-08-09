@@ -5,6 +5,8 @@ import { useTheme } from '@/hooks/useTheme';
 import { ListItem } from '@/components/ui/ListItem';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { AvatarIcon } from '@/components/ui/AvatarIcon';
+import { colorForActivity } from '@/utils/iconColors';
 import { useNavigation, useRouter } from 'expo-router';
 import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
 
@@ -30,12 +32,20 @@ export default function ActivityScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
-        <HeaderIconButton
-          name="plus"
-          accessibilityLabel="New recurring expense"
-          accessibilityHint="Create a new recurring expense"
-          onPress={() => router.push('/(tabs)/activity/recurring' as never)}
-        />
+        <View style={{ flexDirection: 'row' }}>
+          <HeaderIconButton
+            name="arrow.triangle.2.circlepath"
+            accessibilityLabel="Recurring list"
+            accessibilityHint="View and manage recurring expenses"
+            onPress={() => router.push('/(tabs)/activity/recurring-list' as never)}
+          />
+          <HeaderIconButton
+            name="plus"
+            accessibilityLabel="New recurring expense"
+            accessibilityHint="Create a new recurring expense"
+            onPress={() => router.push('/(tabs)/activity/recurring' as never)}
+          />
+        </View>
       ),
     });
   }, [navigation, router]);
@@ -43,13 +53,13 @@ export default function ActivityScreen() {
   const iconForType = (type: string) => {
     switch (type) {
       case 'expense_added':
-        return 'plus.circle.fill' as const;
+        return 'plus' as const;
       case 'expense_edited':
-        return 'pencil.circle.fill' as const;
+        return 'pencil' as const;
       case 'expense_deleted':
-        return 'trash.circle.fill' as const;
+        return 'trash' as const;
       case 'group_created':
-        return 'person.3.fill' as const;
+        return 'person.3' as const;
       case 'group_renamed':
         return 'textformat' as const;
       case 'recurring_added':
@@ -69,7 +79,7 @@ export default function ActivityScreen() {
       contentContainerStyle={{ paddingBottom: 24, paddingTop: 12 }}
       renderItem={({ item }) => (
         <ListItem
-          left={<IconSymbol name={iconForType(item.type)} color={t.colors.secondaryLabel} size={20} />}
+          left={<AvatarIcon name={iconForType(item.type)} bgColor={colorForActivity(item.type)} size={18} containerSize={36} />}
           title={<Text style={{ color: t.colors.label, fontSize: 16, fontWeight: '500' }}>{item.message}</Text>}
           right={<Text style={{ color: t.colors.secondaryLabel }}>{timeAgo(item.createdAt)}</Text>}
           style={{ marginHorizontal: 16, marginTop: 12 }}

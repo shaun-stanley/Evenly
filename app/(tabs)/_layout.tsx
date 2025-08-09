@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, useColorScheme } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -9,11 +9,14 @@ import { useTheme } from '@/hooks/useTheme';
 
 export default function TabLayout() {
   const t = useTheme();
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const navColors = isDark ? { tint: '#0a84ff' } : { tint: '#007aff' };
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: t.colors.tint,
+        tabBarActiveTintColor: navColors.tint,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
@@ -21,6 +24,7 @@ export default function TabLayout() {
           ios: {
             // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
+            backgroundColor: 'transparent',
           },
           default: {},
         }),

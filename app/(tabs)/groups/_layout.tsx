@@ -1,17 +1,24 @@
 import { Stack, useRouter } from 'expo-router';
-import { useTheme } from '@/hooks/useTheme';
+import { Platform, useColorScheme } from 'react-native';
 import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
+import HeaderBackground from '@/components/ui/HeaderBackground';
 
 export default function GroupsLayout() {
-  const t = useTheme();
+  const scheme = useColorScheme();
+  const isDark = scheme === 'dark';
+  const colors = isDark
+    ? { tint: '#0a84ff', label: '#ffffff', background: '#000000' }
+    : { tint: '#007aff', label: '#1c1c1e', background: '#f2f2f7' };
   const router = useRouter();
   return (
     <Stack screenOptions={{
       headerLargeTitle: false,
-      headerTintColor: t.colors.tint,
-      headerTitleStyle: { color: t.colors.label, fontSize: 17, fontWeight: '600' },
+      headerTintColor: colors.tint,
+      headerTitleStyle: { color: colors.label, fontSize: 17, fontWeight: '600' },
       headerShadowVisible: false,
-      headerStyle: { backgroundColor: t.colors.background },
+      headerTransparent: Platform.OS === 'ios',
+      headerStyle: { backgroundColor: Platform.OS === 'ios' ? 'transparent' : colors.background },
+      headerBackground: Platform.OS === 'ios' ? (() => <HeaderBackground />) : undefined,
     }}>
       <Stack.Screen name="index" options={{ title: 'Groups' }} />
       <Stack.Screen
