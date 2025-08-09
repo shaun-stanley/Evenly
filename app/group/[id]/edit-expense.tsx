@@ -1,7 +1,7 @@
 import React from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useStore } from '@/store/store';
+import { useStore, selectCurrencyForGroup } from '@/store/store';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import type { Tokens } from '@/theme/tokens';
@@ -34,6 +34,7 @@ export default function EditExpenseScreen() {
       ? Object.fromEntries(Object.entries(expense.shares).map(([k, v]) => [k, Number(v)]))
       : {}
   );
+  const currency = selectCurrencyForGroup(state, expense?.groupId);
 
   const save = () => {
     if (!expense || !id) return;
@@ -161,7 +162,7 @@ export default function EditExpenseScreen() {
           required
           helper={(() => {
             const v = amountCents / 100;
-            if (!isNaN(v) && v > 0) return <Text style={styles.helper}>Will update to {formatCurrency(v)}</Text>;
+            if (!isNaN(v) && v > 0) return <Text style={styles.helper}>Will update to {formatCurrency(v, { currency })}</Text>;
             return null;
           })()}
         >

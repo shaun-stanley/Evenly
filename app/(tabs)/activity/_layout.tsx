@@ -19,6 +19,9 @@ export default function ActivityLayout() {
       headerBackground: Platform.OS === 'ios' ? (() => <HeaderBackground />) : undefined,
     }}>
       <Stack.Screen name="index" options={{ title: 'Activity' }} />
+      <Stack.Screen name="recurring-list" options={{ title: 'Recurring' }} />
+      <Stack.Screen name="recurring" options={{ title: 'New Recurring' }} />
+      <Stack.Screen name="recurring-edit/[id]" options={{ title: 'Edit Recurring' }} />
     </Stack>
   );
 }

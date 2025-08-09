@@ -2,7 +2,7 @@ import React from 'react';
 import { Alert, ActionSheetIOS, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useLayoutEffect, useMemo } from 'react';
-import { useStore, selectGroup, selectExpensesForGroup, computeGroupTotalsForUserInGroup } from '@/store/store';
+import { useStore, selectGroup, selectExpensesForGroup, computeGroupTotalsForUserInGroup, selectCurrencyForGroup } from '@/store/store';
 import { Swipeable } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -13,12 +13,13 @@ import { Card } from '@/components/ui/Card';
 import { ListItem } from '@/components/ui/ListItem';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatCurrency } from '@/utils/currency';
+import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
 
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const navigation = useNavigation();
-  const { state, hydrated, deleteExpense, renameGroup } = useStore();
+  const { state, hydrated, deleteExpense, renameGroup, setGroupCurrency } = useStore();
   const t = useTheme();
   const styles = React.useMemo(() => makeStyles(t), [t]);
   const group = useMemo(() => (id ? selectGroup(state, id) : undefined), [state, id]);
@@ -27,46 +28,85 @@ export default function GroupDetailScreen() {
     [state, id]
   );
   const groupTotals = useMemo(() => (id ? computeGroupTotalsForUserInGroup(state, id) : { owes: 0, owed: 0 }), [state, id]);
+  const currency = selectCurrencyForGroup(state, id ? String(id) : undefined);
+  const [showCurrencyPicker, setShowCurrencyPicker] = React.useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({
       title: group?.name ?? 'Group',
       headerRight: () => (
-        <HeaderIconButton
-          name="pencil"
-          accessibilityLabel="Rename group"
-          accessibilityHint="Opens a prompt to rename this group"
-          onPress={() => {
-            if (!id) return;
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-            if (Platform.OS === 'ios') {
-              // @ts-ignore iOS only API
-              Alert.prompt(
-                'Rename Group',
-                'Enter a new name',
-                [
-                  { text: 'Cancel', style: 'cancel' },
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <HeaderIconButton
+            name="plus"
+            accessibilityLabel="Add expense"
+            accessibilityHint="Adds a new expense"
+            onPress={() => {
+              if (!id) return;
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+              router.push(`/group/${id}/add-expense`);
+            }}
+          />
+          <HeaderIconButton
+            name="ellipsis.circle"
+            accessibilityLabel="More options"
+            accessibilityHint="Shows actions for this group"
+            onPress={() => {
+              if (Platform.OS === 'ios') {
+                ActionSheetIOS.showActionSheetWithOptions(
                   {
-                    text: 'Save',
-                    onPress: (text?: string) => {
-                      const n = text?.trim();
-                      if (n) renameGroup(String(id), n);
-                    },
+                    title: group?.name ?? 'Group',
+                    options: ['Rename Group', 'Change Currency', 'View Recurring', 'Cancel'],
+                    cancelButtonIndex: 3,
                   },
-                ],
-                'plain-text',
-                group?.name ?? ''
-              );
-            } else {
-              Alert.alert('Rename', 'Rename is available on iOS for now.');
-            }
-          }}
-        />
+                  (idx) => {
+                    if (idx === 0) {
+                      // Rename
+                      // @ts-ignore iOS only API
+                      Alert.prompt(
+                        'Rename Group',
+                        'Enter a new name',
+                        [
+                          { text: 'Cancel', style: 'cancel' },
+                          {
+                            text: 'Save',
+                            onPress: (text?: string) => {
+                              const n = text?.trim();
+                              if (n && id) renameGroup(String(id), n);
+                            },
+                          },
+                        ],
+                        'plain-text',
+                        group?.name ?? ''
+                      );
+                    } else if (idx === 1) {
+                      // Currency
+                      onPickCurrency();
+                    } else if (idx === 2) {
+                      // View Recurring list
+                      router.push('/(tabs)/activity/recurring-list' as never);
+                    }
+                  }
+                );
+              } else {
+                Alert.alert('Options', undefined, [
+                  { text: 'Rename Group', onPress: () => Alert.alert('Rename', 'Available on iOS for now.') },
+                  { text: 'Change Currency', onPress: onPickCurrency },
+                  { text: 'View Recurring', onPress: () => router.push('/(tabs)/activity/recurring-list' as never) },
+                  { text: 'Cancel', style: 'cancel' },
+                ]);
+              }
+            }}
+          />
+        </View>
       ),
     });
-  }, [group?.name, navigation, id, renameGroup]);
+  }, [group?.name, navigation, router, id, renameGroup]);
 
   if (!hydrated) return null;
+
+  const onPickCurrency = () => {
+    setShowCurrencyPicker(true);
+  };
 
   const onExpensePress = (expenseId: string) => {
     if (Platform.OS === 'ios') {
@@ -151,19 +191,7 @@ export default function GroupDetailScreen() {
           <Text style={styles.name}>{group?.name ?? id}</Text>
           <Text style={styles.meta}>{group?.memberIds.length ?? 0} members</Text>
         </View>
-        <Pressable
-          accessibilityLabel="Add expense"
-          accessibilityRole="button"
-          accessibilityHint="Adds a new expense"
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-            router.push(`/group/${id}/add-expense`);
-          }}
-          hitSlop={8}
-          style={({ pressed }) => [{ padding: 6, borderRadius: 8 }, pressed && { opacity: 0.6 }]}
-        >
-          <IconSymbol name="plus.circle.fill" color={t.colors.tint} size={28} />
-        </Pressable>
+        {/* Inline Add moved to header to follow iOS patterns */}
       </View>
 
       <Card style={styles.card}>
@@ -173,16 +201,45 @@ export default function GroupDetailScreen() {
         ) : (
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <Text style={styles.muted}>You owe</Text>
-            <Text style={[styles.amountNeg]}>{formatCurrency(groupTotals.owes)}</Text>
+            <Text style={[styles.amountNeg]}>{formatCurrency(groupTotals.owes, { currency })}</Text>
           </View>
         )}
         {groupTotals.owed > 0 && (
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
             <Text style={styles.muted}>You are owed</Text>
-            <Text style={[styles.amountPos]}>{formatCurrency(groupTotals.owed)}</Text>
+            <Text style={[styles.amountPos]}>{formatCurrency(groupTotals.owed, { currency })}</Text>
           </View>
         )}
       </Card>
+
+      <Card style={styles.card}>
+        <Text style={styles.sectionTitle}>Group</Text>
+        <ListItem
+          title={<Text style={styles.expenseTitle}>Currency</Text>}
+          subtitle={<Text style={styles.expenseMeta}>Applies only to this group</Text>}
+          right={
+            <Text style={styles.expenseAmount}>
+              {group?.currency ? group.currency : `Default (${state.settings.currency})`}
+            </Text>
+          }
+          showChevron
+          onPress={onPickCurrency}
+          accessibilityLabel={`Currency ${group?.currency ? group.currency : `Default (${state.settings.currency})`}`}
+          accessibilityHint="Opens currency picker"
+        />
+      </Card>
+
+      <CurrencyPicker
+        visible={showCurrencyPicker}
+        selectedCode={group?.currency}
+        includeDefaultOption={{ label: `Use default (${state.settings.currency})`, value: undefined }}
+        onSelect={(code) => {
+          if (!id) return;
+          setGroupCurrency(String(id), code);
+        }}
+        onClose={() => setShowCurrencyPicker(false)}
+        title="Currency"
+      />
 
       <Card style={styles.card}>
         <Text style={styles.sectionTitle}>Expenses</Text>
@@ -194,8 +251,8 @@ export default function GroupDetailScreen() {
               <ListItem
                 title={<Text style={styles.expenseTitle}>{e.description}</Text>}
                 subtitle={<Text style={styles.expenseMeta}>Paid by {state.members[e.paidBy]?.name ?? 'Someone'}</Text>}
-                right={<Text style={styles.expenseAmount}>{formatCurrency(e.amount)}</Text>}
-                accessibilityLabel={`Expense ${e.description}, ${formatCurrency(e.amount)}, paid by ${state.members[e.paidBy]?.name ?? 'someone'}`}
+                right={<Text style={styles.expenseAmount}>{formatCurrency(e.amount, { currency: selectCurrencyForGroup(state, e.groupId) })}</Text>}
+                accessibilityLabel={`Expense ${e.description}, ${formatCurrency(e.amount, { currency: selectCurrencyForGroup(state, e.groupId) })}, paid by ${state.members[e.paidBy]?.name ?? 'someone'}`}
                 accessibilityHint="Opens options for this expense"
                 onPress={() => onExpensePress(e.id)}
               />

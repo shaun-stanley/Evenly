@@ -1,7 +1,7 @@
 import React, { useLayoutEffect } from 'react';
 import { ActionSheetIOS, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter, useNavigation } from 'expo-router';
-import { useStore, computeUserTotals, selectGroupsArray, computeGroupTotalsForUserInGroup } from '@/store/store';
+import { useStore, computeUserTotals, selectGroupsArray, computeGroupTotalsForUserInGroup, selectCurrencyForGroup } from '@/store/store';
 import { useTheme } from '@/hooks/useTheme';
 import { Card } from '@/components/ui/Card';
 import { ListItem } from '@/components/ui/ListItem';
@@ -115,7 +115,7 @@ export default function OverviewScreen() {
     >
       <Card style={styles.balanceCard}>
         <Text style={styles.balanceLabel}>{headline}</Text>
-        <Text style={[styles.balanceAmount, { color: headlineColor }]}>{formatCurrency(headlineAmount)}</Text>
+        <Text style={[styles.balanceAmount, { color: headlineColor }]}>{formatCurrency(headlineAmount, { currency: state.settings.currency })}</Text>
         <Text style={styles.balanceMeta}>Across groups</Text>
       </Card>
 
@@ -155,8 +155,9 @@ export default function OverviewScreen() {
       {groups.map((g) => {
         const gt = computeGroupTotalsForUserInGroup(state, g.id);
         let right: React.ReactNode = <Text style={styles.groupStatusMuted}>Settled up</Text>;
-        if (gt.owes > 0) right = <Text style={styles.groupStatusNeg}>You owe {formatCurrency(gt.owes)}</Text>;
-        if (gt.owed > 0) right = <Text style={styles.groupStatusPos}>You are owed {formatCurrency(gt.owed)}</Text>;
+        const currency = selectCurrencyForGroup(state, g.id);
+        if (gt.owes > 0) right = <Text style={styles.groupStatusNeg}>You owe {formatCurrency(gt.owes, { currency })}</Text>;
+        if (gt.owed > 0) right = <Text style={styles.groupStatusPos}>You are owed {formatCurrency(gt.owed, { currency })}</Text>;
         return (
           <ListItem
             key={g.id}

@@ -10,6 +10,12 @@ function genId(prefix: string = 'id'): ID {
   return `${prefix}_${Math.random().toString(36).slice(2, 8)}_${Date.now().toString(36)}`;
 }
 
+export function selectCurrencyForGroup(state: State, groupId: ID | undefined): string {
+  if (!groupId) return state.settings.currency;
+  const g = state.groups[groupId];
+  return g?.currency || state.settings.currency;
+}
+
 // Compute the next occurrence timestamp for a given rule starting from a base date.
 function computeNextOccurrence(rule: RecurrenceRule, from: number): number {
   const interval = Math.max(1, rule.interval ?? 1);
@@ -42,6 +48,7 @@ const initialState: State = {
   expenses: {},
   activity: [],
   recurring: {},
+  settings: { currency: 'USD' },
 };
 
 function reducer(state: State, action: Action): State {
@@ -52,6 +59,7 @@ function reducer(state: State, action: Action): State {
         ...initialState,
         ...action.payload,
         recurring: (action.payload as any).recurring ?? {},
+        settings: (action.payload as any).settings ?? initialState.settings,
       };
     case 'ADD_GROUP': {
       const id = genId('grp');
@@ -108,10 +116,11 @@ function reducer(state: State, action: Action): State {
         shares: action.payload.shares,
         createdAt: Date.now(),
       };
+      const currency = state.groups[groupId]?.currency || state.settings.currency;
       const activity: ActivityItem = {
         id: genId('act'),
         type: 'expense_added',
-        message: `Added “${description}” ${formatCurrency(amount)} in ${state.groups[groupId].name}`,
+        message: `Added “${description}” ${formatCurrency(amount, { currency })} in ${state.groups[groupId].name}`,
         createdAt: Date.now(),
       };
       return {
@@ -125,10 +134,11 @@ function reducer(state: State, action: Action): State {
       const prev = state.expenses[id];
       if (!prev) return state;
       const next: Expense = { ...prev, ...updates };
+      const currency = state.groups[next.groupId]?.currency || state.settings.currency;
       const activity: ActivityItem = {
         id: genId('act'),
         type: 'expense_edited',
-        message: `Edited “${next.description}” ${formatCurrency(next.amount)} in ${state.groups[next.groupId]?.name ?? 'group'}`,
+        message: `Edited “${next.description}” ${formatCurrency(next.amount, { currency })} in ${state.groups[next.groupId]?.name ?? 'group'}`,
         createdAt: Date.now(),
       };
       return {
@@ -171,10 +181,11 @@ function reducer(state: State, action: Action): State {
         active: true,
         createdAt: Date.now(),
       };
+      const currency = state.groups[p.groupId]?.currency || state.settings.currency;
       const activity: ActivityItem = {
         id: genId('act'),
         type: 'recurring_added',
-        message: `Added recurring “${rec.description}” ${formatCurrency(rec.amount)} in ${state.groups[p.groupId].name}`,
+        message: `Added recurring “${rec.description}” ${formatCurrency(rec.amount, { currency })} in ${state.groups[p.groupId].name}`,
         createdAt: Date.now(),
       };
       return {
@@ -192,10 +203,11 @@ function reducer(state: State, action: Action): State {
         ...updates,
         nextOccurrenceAt: updates.rule ? computeNextOccurrence(updates.rule, Date.now()) : prev.nextOccurrenceAt,
       };
+      const currency = state.groups[next.groupId]?.currency || state.settings.currency;
       const activity: ActivityItem = {
         id: genId('act'),
         type: 'recurring_edited',
-        message: `Edited recurring “${next.description}” ${formatCurrency(next.amount)} in ${state.groups[next.groupId]?.name ?? 'group'}`,
+        message: `Edited recurring “${next.description}” ${formatCurrency(next.amount, { currency })} in ${state.groups[next.groupId]?.name ?? 'group'}`,
         createdAt: Date.now(),
       };
       return {
@@ -224,6 +236,18 @@ function reducer(state: State, action: Action): State {
       const next: RecurringExpense = { ...prev, active };
       return { ...state, recurring: { ...state.recurring, [id]: next } };
     }
+    case 'SET_GROUP_CURRENCY': {
+      const { id, currency } = action.payload as { id: ID; currency?: string };
+      const prev = state.groups[id];
+      if (!prev) return state;
+      const next: Group = { ...prev };
+      if (currency) next.currency = currency; else delete (next as any).currency;
+      return { ...state, groups: { ...state.groups, [id]: next } };
+    }
+    case 'SET_CURRENCY': {
+      const { currency } = action.payload as { currency: string };
+      return { ...state, settings: { ...state.settings, currency } };
+    }
     default:
       return state;
   }
@@ -241,6 +265,8 @@ const StoreContext = createContext<{
   editRecurring: (payload: EditRecurringPayload) => void;
   deleteRecurring: (id: ID) => void;
   toggleRecurringActive: (id: ID, active: boolean) => void;
+  setGroupCurrency: (id: ID, currency?: string) => void;
+  setCurrency: (currency: string) => void;
   hydrated: boolean;
 } | null>(null);
 
@@ -312,7 +338,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const toggleRecurringActive = (id: ID, active: boolean) =>
     dispatch({ type: 'TOGGLE_RECURRING_ACTIVE', payload: { id, active } });
 
-  const value = useMemo(() => ({ state, dispatch, addGroup, addExpense, editExpense, deleteExpense, renameGroup, addRecurring, editRecurring, deleteRecurring, toggleRecurringActive, hydrated }), [state, hydrated]);
+  const setGroupCurrency = (id: ID, currency?: string) =>
+    dispatch({ type: 'SET_GROUP_CURRENCY', payload: { id, currency } });
+
+  const setCurrency = (currency: string) =>
+    dispatch({ type: 'SET_CURRENCY', payload: { currency } });
+
+  const value = useMemo(() => ({ state, dispatch, addGroup, addExpense, editExpense, deleteExpense, renameGroup, addRecurring, editRecurring, deleteRecurring, toggleRecurringActive, setGroupCurrency, setCurrency, hydrated }), [state, hydrated]);
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
 

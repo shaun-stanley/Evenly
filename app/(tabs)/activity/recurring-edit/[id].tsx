@@ -1,77 +1,72 @@
 import React, { useLayoutEffect } from 'react';
-import { ActionSheetIOS, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { useNavigation, useRouter } from 'expo-router';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
-import { useStore, selectGroupsArray, selectCurrencyForGroup } from '@/store/store';
+import { useStore, selectCurrencyForGroup } from '@/store/store';
 import type { RecurrenceFrequency } from '@/store/types';
 import { useTheme } from '@/hooks/useTheme';
 import { FormField } from '@/components/ui/FormField';
 import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
 import { ListItem } from '@/components/ui/ListItem';
-import { EmptyState } from '@/components/ui/EmptyState';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { centsFromText, textFromCents, formatCurrency } from '@/utils/currency';
 
-export default function NewRecurringScreen() {
-  const { state, addRecurring } = useStore();
+export default function EditRecurringScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { state, editRecurring, deleteRecurring } = useStore();
+  const rec = id ? state.recurring[String(id)] : undefined;
   const t = useTheme();
   const router = useRouter();
   const navigation = useNavigation();
-  const groups = selectGroupsArray(state);
 
-  const [description, setDescription] = React.useState('');
-  const [amountCents, setAmountCents] = React.useState(0);
-  const [groupId, setGroupId] = React.useState(groups[0]?.id);
-  const [frequency, setFrequency] = React.useState<RecurrenceFrequency>('monthly');
-  const [interval, setInterval] = React.useState<string>('1');
-  const currency = selectCurrencyForGroup(state, groupId);
+  const [description, setDescription] = React.useState(rec?.description ?? '');
+  const [amountCents, setAmountCents] = React.useState(Math.round((rec?.amount ?? 0) * 100));
+  const [frequency, setFrequency] = React.useState<RecurrenceFrequency>(rec?.rule.frequency ?? 'monthly');
+  const [interval, setInterval] = React.useState<string>(String(rec?.rule.interval ?? 1));
+  const currency = rec ? selectCurrencyForGroup(state, rec.groupId) : state.settings.currency;
 
-  const canSave = description.trim().length > 0 && amountCents > 0 && !!groupId;
-
-  const onPickGroup = () => {
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          title: 'Choose group…',
-          options: [...groups.map((g) => g.name), 'Cancel'],
-          cancelButtonIndex: groups.length,
-        },
-        (idx) => {
-          if (idx != null && idx >= 0 && idx < groups.length) setGroupId(groups[idx].id);
-        }
-      );
-    } else {
-      // Fallback: just jump to groups tab for now
-      router.push('/(tabs)/groups' as never);
-    }
-  };
+  const canSave = !!rec && description.trim().length > 0 && amountCents > 0;
 
   const onSave = React.useCallback(() => {
-    if (!canSave || !groupId) return;
+    if (!rec || !id || !canSave) return;
     const n = amountCents / 100;
     const iv = Math.max(1, parseInt(interval || '1', 10) || 1);
-    addRecurring({
-      groupId,
+    editRecurring({
+      id: String(id),
       description: description.trim(),
       amount: n,
-      paidBy: state.currentMemberId,
-      splitType: 'equal',
-      rule: { frequency, interval: iv, startDate: Date.now() },
+      rule: { frequency, interval: iv, startDate: rec.rule.startDate },
     });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     router.back();
-  }, [addRecurring, amountCents, canSave, description, frequency, groupId, interval, router, state.currentMemberId]);
+  }, [amountCents, canSave, description, editRecurring, frequency, id, interval, rec, router]);
+
+  const onDelete = React.useCallback(() => {
+    if (!rec || !id) return;
+    Alert.alert('Delete recurring?', 'This cannot be undone.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          deleteRecurring(String(id));
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+          router.back();
+        },
+      },
+    ]);
+  }, [deleteRecurring, id, rec, router]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: 'New Recurring',
+      title: 'Edit Recurring',
       headerRight: () => (
         <HeaderIconButton
           name="checkmark"
           accessibilityLabel="Save recurring expense"
-          accessibilityHint="Saves the recurring expense"
+          accessibilityHint="Saves the changes"
           onPress={onSave}
           disabled={!canSave}
         />
@@ -79,16 +74,10 @@ export default function NewRecurringScreen() {
     });
   }, [navigation, onSave, canSave]);
 
-  if (groups.length === 0) {
+  if (!rec) {
     return (
-      <View style={{ flex: 1, backgroundColor: t.colors.background, padding: 16 }}>
-        <EmptyState
-          icon="person.3"
-          title="No groups yet"
-          message="Create a group first to add a recurring expense."
-        >
-          <Button title="Create a group" variant="filled" onPress={() => router.push('/(tabs)/groups/create' as never)} />
-        </EmptyState>
+      <View style={{ flex: 1, backgroundColor: t.colors.background, alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+        <Text style={{ color: t.colors.secondaryLabel }}>Recurring item not found.</Text>
       </View>
     );
   }
@@ -99,11 +88,10 @@ export default function NewRecurringScreen() {
         <Card style={{ marginHorizontal: 16, marginTop: 16 }}>
           <ListItem
             title={<Text style={{ color: t.colors.label, fontWeight: '600' }}>Group</Text>}
-            right={<Text style={{ color: t.colors.secondaryLabel }}>{state.groups[groupId!]?.name}</Text>}
-            showChevron
+            right={<Text style={{ color: t.colors.secondaryLabel }}>{state.groups[rec.groupId]?.name}</Text>}
             inset={false}
-            onPress={onPickGroup}
-            accessibilityLabel="Choose group"
+            accessibilityLabel="Group"
+            accessibilityHint="Group cannot be changed"
           />
           <FormField label="Description">
             <TextInput
@@ -198,15 +186,9 @@ export default function NewRecurringScreen() {
           </FormField>
         </Card>
 
-        {/* Primary save action */}
-        <View style={{ marginHorizontal: 16 }}>
-          <Button
-            title="Save recurring"
-            variant="filled"
-            onPress={onSave}
-            disabled={!canSave}
-            accessibilityLabel="Save recurring expense"
-          />
+        <View style={{ marginHorizontal: 16, gap: 12 }}>
+          <Button title="Save changes" variant="filled" onPress={onSave} disabled={!canSave} accessibilityLabel="Save recurring changes" />
+          <Button title="Delete recurring" variant="destructive" onPress={onDelete} accessibilityLabel="Delete recurring" />
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

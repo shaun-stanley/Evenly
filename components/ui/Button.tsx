@@ -4,7 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { IconSymbol, IconSymbolName } from '@/components/ui/IconSymbol';
 
-export type ButtonVariant = 'filled' | 'gray';
+export type ButtonVariant = 'filled' | 'gray' | 'destructive';
 
 export function Button({
   title,
@@ -26,9 +26,9 @@ export function Button({
   const t = useTheme();
   const styles = React.useMemo(() => makeStyles(t), [t]);
 
-  const bg = variant === 'filled' ? t.colors.tint : t.colors.fill;
-  const fg: StyleProp<TextStyle> = variant === 'filled' ? { color: '#fff' } : { color: t.colors.label };
-  const iconColor = variant === 'filled' ? '#fff' : t.colors.label;
+  const bg = variant === 'filled' ? t.colors.tint : variant === 'destructive' ? t.colors.danger : t.colors.fill;
+  const fg: StyleProp<TextStyle> = variant === 'filled' || variant === 'destructive' ? { color: '#fff' } : { color: t.colors.label };
+  const iconColor = (variant === 'filled' || variant === 'destructive') ? '#fff' : t.colors.label;
 
   return (
     <Pressable

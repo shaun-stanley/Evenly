@@ -1,9 +1,9 @@
 import React, { useLayoutEffect } from 'react';
-import { ActionSheetIOS, FlatList, Platform, Text, View } from 'react-native';
+import { ActionSheetIOS, FlatList, Platform, Pressable, Text, View, Alert } from 'react-native';
 import { useNavigation, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
-import { useStore } from '@/store/store';
+import { useStore, selectCurrencyForGroup } from '@/store/store';
 import { useTheme } from '@/hooks/useTheme';
 import { ListItem } from '@/components/ui/ListItem';
 import { AvatarIcon } from '@/components/ui/AvatarIcon';
@@ -11,6 +11,8 @@ import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
 import { formatCurrency } from '@/utils/currency';
 import { colorForActivity } from '@/utils/iconColors';
 import { Switch } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 
 export default function RecurringListScreen() {
   const { state, toggleRecurringActive, deleteRecurring } = useStore();
@@ -38,19 +40,58 @@ export default function RecurringListScreen() {
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: ['Delete', 'Cancel'],
-          destructiveButtonIndex: 0,
-          cancelButtonIndex: 1,
+          options: ['Edit', 'Delete', 'Cancel'],
+          destructiveButtonIndex: 1,
+          cancelButtonIndex: 2,
         },
         (idx) => {
           if (idx === 0) {
+            router.push(`/(tabs)/activity/recurring-edit/${id}` as never);
+          } else if (idx === 1) {
             deleteRecurring(id);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
           }
         }
       );
+    } else {
+      // Android: go straight to edit for now
+      router.push(`/(tabs)/activity/recurring-edit/${id}` as never);
     }
   };
+
+  const renderRightActions = (id: string) => (
+    <View style={{ flexDirection: 'row', height: '100%' }}>
+      <Pressable
+        accessibilityLabel="Delete recurring"
+        accessibilityRole="button"
+        accessibilityHint="Deletes this recurring expense"
+        hitSlop={8}
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+          Alert.alert('Delete recurring?', 'This cannot be undone.', [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Delete',
+              style: 'destructive',
+              onPress: () => {
+                deleteRecurring(id);
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+              },
+            },
+          ]);
+        }}
+        style={({ pressed }) => [
+          { justifyContent: 'center', alignItems: 'center', width: 88, backgroundColor: t.colors.danger },
+          pressed && { opacity: 0.7 },
+        ]}
+      >
+        <View style={{ alignItems: 'center' }}>
+          <IconSymbol name="trash" color="#ffffff" size={20} />
+          <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600', marginTop: 4 }}>Delete</Text>
+        </View>
+      </Pressable>
+    </View>
+  );
 
   const ruleLabel = (interval?: number, frequency?: string) => {
     const iv = Math.max(1, interval || 1);
@@ -65,33 +106,35 @@ export default function RecurringListScreen() {
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={{ paddingBottom: 24, paddingTop: 12 }}
       renderItem={({ item }) => (
-        <ListItem
-          left={<AvatarIcon name="arrow.triangle.2.circlepath" bgColor={colorForActivity('recurring_added')} size={18} containerSize={36} />}
-          title={
-            <Text style={{ color: item.active ? t.colors.label : t.colors.secondaryLabel, fontSize: 16, fontWeight: '500' }}>
-              {item.description}
-            </Text>
-          }
-          subtitle={
-            <Text style={{ color: t.colors.secondaryLabel, marginTop: 2 }}>
-              {formatCurrency(item.amount)} • {ruleLabel(item.rule.interval, item.rule.frequency)} • Next {new Date(item.nextOccurrenceAt).toLocaleDateString()}
-            </Text>
-          }
-          right={
-            <Switch
-              value={item.active}
-              onValueChange={(v) => {
-                toggleRecurringActive(item.id, v);
-                Haptics.selectionAsync().catch(() => {});
-              }}
-              trackColor={{ false: t.colors.separator, true: t.colors.tint }}
-            />
-          }
-          style={{ marginHorizontal: 16, marginTop: 12 }}
-          onPress={() => onRowPress(item.id)}
-          accessibilityLabel={`${item.description}, ${formatCurrency(item.amount)}, ${ruleLabel(item.rule.interval, item.rule.frequency)}`}
-          accessibilityHint="Double tap to open actions"
-        />
+        <Swipeable renderRightActions={() => renderRightActions(item.id)} overshootRight={false}>
+          <ListItem
+            left={<AvatarIcon name="arrow.triangle.2.circlepath" bgColor={colorForActivity('recurring_added')} size={18} containerSize={36} />}
+            title={
+              <Text style={{ color: item.active ? t.colors.label : t.colors.secondaryLabel, fontSize: 16, fontWeight: '500' }}>
+                {item.description}
+              </Text>
+            }
+            subtitle={
+              <Text style={{ color: t.colors.secondaryLabel, marginTop: 2 }}>
+                {formatCurrency(item.amount, { currency: selectCurrencyForGroup(state, item.groupId) })} • {ruleLabel(item.rule.interval, item.rule.frequency)} • Next {new Date(item.nextOccurrenceAt).toLocaleDateString()}
+              </Text>
+            }
+            right={
+              <Switch
+                value={item.active}
+                onValueChange={(v) => {
+                  toggleRecurringActive(item.id, v);
+                  Haptics.selectionAsync().catch(() => {});
+                }}
+                trackColor={{ false: t.colors.separator, true: t.colors.tint }}
+              />
+            }
+            style={{ marginHorizontal: 16, marginTop: 12 }}
+            onPress={() => onRowPress(item.id)}
+            accessibilityLabel={`${item.description}, ${formatCurrency(item.amount, { currency: selectCurrencyForGroup(state, item.groupId) })}, ${ruleLabel(item.rule.interval, item.rule.frequency)}`}
+            accessibilityHint="Double tap to open actions"
+          />
+        </Swipeable>
       )}
       ListEmptyComponent={<View style={{ height: 1 }} />}
       ListFooterComponent={<View style={{ height: 24 }} />}

@@ -10,6 +10,7 @@ export type Group = {
   name: string;
   memberIds: ID[];
   createdAt: number;
+  currency?: string; // optional ISO 4217 code to override app default for this group
 };
 
 export type SplitType = 'equal' | 'amount' | 'percent';
@@ -129,5 +130,6 @@ export type Action =
   | { type: 'EDIT_RECURRING'; payload: EditRecurringPayload }
   | { type: 'DELETE_RECURRING'; payload: { id: ID } }
   | { type: 'TOGGLE_RECURRING_ACTIVE'; payload: { id: ID; active: boolean } }
+  | { type: 'SET_GROUP_CURRENCY'; payload: { id: ID; currency?: string } }
   | { type: 'SET_CURRENCY'; payload: { currency: string } }
   | { type: 'HYDRATE'; payload: State };
