@@ -119,10 +119,12 @@ function reducer(state: State, action: Action): State {
         createdAt: Date.now(),
       };
       const currency = state.groups[groupId]?.currency || state.settings.currency;
+      const attachmentsCount = (action.payload as any).attachments?.length || undefined;
       const activity: ActivityItem = {
         id: genId('act'),
         type: 'expense_added',
         message: `Added “${description}” ${formatCurrency(amount, { currency })} in ${state.groups[groupId].name}${(action.payload as any).attachments?.length ? ` · ${(action.payload as any).attachments.length} attachment${(action.payload as any).attachments.length === 1 ? '' : 's'}` : ''}`,
+        attachmentsCount,
         createdAt: Date.now(),
       };
       return {
@@ -137,10 +139,12 @@ function reducer(state: State, action: Action): State {
       if (!prev) return state;
       const next: Expense = { ...prev, ...updates };
       const currency = state.groups[next.groupId]?.currency || state.settings.currency;
+      const attachmentsCount = next.attachments?.length || undefined;
       const activity: ActivityItem = {
         id: genId('act'),
         type: 'expense_edited',
         message: `Edited “${next.description}” ${formatCurrency(next.amount, { currency })} in ${state.groups[next.groupId]?.name ?? 'group'}${next.attachments?.length ? ` · ${next.attachments.length} attachment${next.attachments.length === 1 ? '' : 's'}` : ''}`,
+        attachmentsCount,
         createdAt: Date.now(),
       };
       return {

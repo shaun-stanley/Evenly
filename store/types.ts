@@ -73,6 +73,7 @@ export type ActivityItem = {
     | 'recurring_edited'
     | 'recurring_deleted';
   message: string;
+  attachmentsCount?: number;
   createdAt: number;
 };
 

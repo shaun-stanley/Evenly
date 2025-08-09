@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, Modal, Linking } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, Modal, Linking, Share, ActionSheetIOS } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useStore, selectCurrencyForGroup } from '@/store/store';
 import * as Haptics from 'expo-haptics';
@@ -12,6 +12,7 @@ import { Image } from 'expo-image';
 import { Button } from '@/components/ui/Button';
 import type { Attachment } from '@/store/types';
 import { saveAttachmentFile, deleteAttachmentFile } from '@/utils/attachments';
+import { IconSymbol } from '@/components/ui/IconSymbol';
 
 export default function EditExpenseScreen() {
   const { id, expenseId } = useLocalSearchParams<{ id: string; expenseId: string }>();
@@ -121,7 +122,40 @@ export default function EditExpenseScreen() {
   };
 
   const removeAttachment = (id: string) => {
+    Haptics.selectionAsync().catch(() => {});
     setAttachments((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const shareAttachment = async (att: Attachment) => {
+    try {
+      await Share.share({ url: att.uri });
+    } catch (e) {
+      console.warn('Share failed', e);
+    }
+  };
+
+  const openAttachmentMenu = (att: Attachment, index: number) => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'View', 'Share', 'Remove'],
+          cancelButtonIndex: 0,
+          destructiveButtonIndex: 3,
+        },
+        (i) => {
+          if (i === 1) setViewerIndex(index);
+          if (i === 2) shareAttachment(att);
+          if (i === 3) removeAttachment(att.id);
+        }
+      );
+    } else {
+      Alert.alert('Attachment', undefined, [
+        { text: 'View', onPress: () => setViewerIndex(index) },
+        { text: 'Share', onPress: () => shareAttachment(att) },
+        { text: 'Remove', style: 'destructive', onPress: () => removeAttachment(att.id) },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    }
   };
 
   const takePhoto = async () => {
@@ -215,13 +249,13 @@ export default function EditExpenseScreen() {
           />
         </FormField>
 
-        <FormField label="Attachments" helper="Add photos or receipts">
+        <FormField label={`Attachments${attachments.length ? ` (${attachments.length})` : ''}`} helper="Add photos or receipts">
           <View style={{ gap: 12 }}>
             {attachments.length > 0 ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
                 {attachments.map((att, idx) => (
                   <View key={att.id} style={{ position: 'relative' }}>
-                    <Pressable onPress={() => setViewerIndex(idx)} accessibilityRole="imagebutton" accessibilityLabel="View attachment">
+                    <Pressable onPress={() => setViewerIndex(idx)} onLongPress={() => openAttachmentMenu(att, idx)} accessibilityRole="imagebutton" accessibilityLabel="View attachment">
                       <Image
                         source={{ uri: att.uri }}
                         style={{ width: 88, height: 88, borderRadius: 12, backgroundColor: t.colors.fill }}
@@ -241,14 +275,13 @@ export default function EditExpenseScreen() {
                           top: -6,
                           right: -6,
                           backgroundColor: t.colors.danger,
-                          borderRadius: 12,
-                          paddingHorizontal: 6,
-                          paddingVertical: 2,
+                          borderRadius: 14,
+                          padding: 2,
                         },
                         pressed && { opacity: 0.8 },
                       ]}
                     >
-                      <Text style={{ color: '#fff', fontWeight: '700' }}>×</Text>
+                      <IconSymbol name="xmark" color="#fff" size={16} />
                     </Pressable>
                   </View>
                 ))}

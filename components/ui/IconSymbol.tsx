@@ -39,6 +39,7 @@ const MAPPING: IconMapping = {
   'camera': 'photo-camera',
   'ellipsis.circle': 'more-horiz',
   'tray': 'inbox',
+  'xmark': 'close',
 };
 
 /**

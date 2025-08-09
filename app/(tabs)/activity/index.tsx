@@ -77,16 +77,42 @@ export default function ActivityScreen() {
       keyExtractor={(item) => item.id}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={{ paddingBottom: 24, paddingTop: 12 }}
-      renderItem={({ item }) => (
-        <ListItem
-          left={<AvatarIcon name={iconForType(item.type)} bgColor={colorForActivity(item.type)} size={18} containerSize={36} />}
-          title={<Text style={{ color: t.colors.label, fontSize: 16, fontWeight: '500' }}>{item.message}</Text>}
-          right={<Text style={{ color: t.colors.secondaryLabel }}>{timeAgo(item.createdAt)}</Text>}
-          style={{ marginHorizontal: 16, marginTop: 12 }}
-          accessibilityLabel={item.message}
-          accessibilityHint="Activity item"
-        />
-      )}
+      renderItem={({ item }) => {
+        const showAttach = (item.type === 'expense_added' || item.type === 'expense_edited') && (item as any).attachmentsCount > 0;
+        return (
+          <ListItem
+            left={<AvatarIcon name={iconForType(item.type)} bgColor={colorForActivity(item.type)} size={18} containerSize={36} />}
+            title={<Text style={{ color: t.colors.label, fontSize: 16, fontWeight: '500' }}>{item.message}</Text>}
+            right={
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                {showAttach ? (
+                  <View
+                    accessible
+                    accessibilityLabel={`${(item as any).attachmentsCount} attachments`}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingHorizontal: 8,
+                      paddingVertical: 3,
+                      borderRadius: 12,
+                      backgroundColor: t.colors.fill,
+                    }}
+                  >
+                    <IconSymbol name="paperclip" size={14} color={t.colors.secondaryLabel} />
+                    <Text style={{ marginLeft: 4, color: t.colors.secondaryLabel, fontSize: 12 }}>
+                      {(item as any).attachmentsCount}
+                    </Text>
+                  </View>
+                ) : null}
+                <Text style={{ color: t.colors.secondaryLabel }}>{timeAgo(item.createdAt)}</Text>
+              </View>
+            }
+            style={{ marginHorizontal: 16, marginTop: 12 }}
+            accessibilityLabel={item.message}
+            accessibilityHint="Activity item"
+          />
+        );
+      }}
       ListEmptyComponent={
         <View style={{ padding: 16 }}>
           <EmptyState icon="clock" title="No activity yet" message="Your recent activity will appear here as you add expenses and make changes." />
