@@ -3,16 +3,18 @@ import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-nativ
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useStore } from '@/store/store';
 
-export default function AddExpenseScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+export default function EditExpenseScreen() {
+  const { id, expenseId } = useLocalSearchParams<{ id: string; expenseId: string }>();
   const router = useRouter();
-  const [title, setTitle] = React.useState('');
-  const [amount, setAmount] = React.useState('');
-  const { addExpense } = useStore();
+  const { state, editExpense } = useStore();
+
+  const expense = expenseId ? state.expenses[String(expenseId)] : undefined;
+  const [title, setTitle] = React.useState(expense?.description ?? '');
+  const [amount, setAmount] = React.useState(expense ? String(expense.amount) : '');
 
   const save = () => {
+    if (!expense || !id) return;
     const value = parseFloat(amount);
-    if (!id) return;
     if (!title.trim()) {
       Alert.alert('Title required', 'Please enter a description.');
       return;
@@ -21,9 +23,17 @@ export default function AddExpenseScreen() {
       Alert.alert('Invalid amount', 'Enter a valid amount greater than 0.');
       return;
     }
-    addExpense({ groupId: id, description: title.trim(), amount: value, splitType: 'equal' });
+    editExpense({ id: expense.id, description: title.trim(), amount: value });
     router.back();
   };
+
+  if (!expense) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ color: '#6b7280' }}>Expense not found.</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

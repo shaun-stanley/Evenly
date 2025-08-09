@@ -1,18 +1,33 @@
 import React from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
-
-const SAMPLE_GROUPS = [
-  { id: 'trip-rome', name: 'Rome Trip', members: 4 },
-  { id: 'apt-401', name: 'Apartment 401', members: 3 },
-];
+import { useRouter, useNavigation } from 'expo-router';
+import { useLayoutEffect } from 'react';
+import { useStore, selectGroupsArray } from '@/store/store';
 
 export default function GroupsScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
+  const { state, hydrated } = useStore();
+  const groups = selectGroupsArray(state);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Pressable
+          onPress={() => router.push({ pathname: '/(tabs)/groups/create' } as never)}
+          style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1, paddingHorizontal: 8 }]}
+        >
+          <Text style={{ color: '#007aff', fontWeight: '600' }}>Add</Text>
+        </Pressable>
+      ),
+    });
+  }, [navigation, router]);
+
+  if (!hydrated) return null;
 
   return (
     <FlatList
-      data={SAMPLE_GROUPS}
+      data={groups}
       keyExtractor={(item) => item.id}
       contentInsetAdjustmentBehavior="automatic"
       renderItem={({ item }) => (
@@ -20,11 +35,16 @@ export default function GroupsScreen() {
           <View style={styles.avatar} />
           <View style={styles.info}>
             <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.meta}>{item.members} members</Text>
+            <Text style={styles.meta}>{item.memberIds.length} members</Text>
           </View>
           <Text style={styles.chevron}>›</Text>
         </Pressable>
       )}
+      ListEmptyComponent={
+        <View style={{ padding: 16 }}>
+          <Text style={{ color: '#6b7280', textAlign: 'center' }}>No groups yet. Tap Add to create one.</Text>
+        </View>
+      }
       ListFooterComponent={<View style={{ height: 24 }} />}
     />
   );

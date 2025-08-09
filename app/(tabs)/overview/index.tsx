@@ -2,10 +2,13 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
+import { useStore, computeUserTotals } from '@/store/store';
 
 export default function OverviewScreen() {
   const colorScheme = useColorScheme();
   const tint = Colors[colorScheme ?? 'light'].tint;
+  const { state } = useStore();
+  const totals = computeUserTotals(state);
 
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic" style={styles.container}>
@@ -13,11 +16,11 @@ export default function OverviewScreen() {
         <Text style={[styles.title, { color: tint }]}>Balances</Text>
         <View style={styles.row}>
           <Text style={styles.label}>You owe</Text>
-          <Text style={[styles.value, styles.negative]}>$0.00</Text>
+          <Text style={[styles.value, styles.negative]}>${totals.owes.toFixed(2)}</Text>
         </View>
         <View style={styles.row}>
           <Text style={styles.label}>You are owed</Text>
-          <Text style={[styles.value, styles.positive]}>$0.00</Text>
+          <Text style={[styles.value, styles.positive]}>${totals.owed.toFixed(2)}</Text>
         </View>
       </View>
 
