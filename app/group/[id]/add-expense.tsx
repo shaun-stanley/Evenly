@@ -7,6 +7,10 @@ import { useTheme } from '@/hooks/useTheme';
 import type { Tokens } from '@/theme/tokens';
 import { centsFromText, textFromCents, formatCurrency } from '@/utils/currency';
 import { FormField } from '@/components/ui/FormField';
+import * as ImagePicker from 'expo-image-picker';
+import { Image } from 'expo-image';
+import { Button } from '@/components/ui/Button';
+import type { Attachment } from '@/store/types';
 
 export default function AddExpenseScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -23,6 +27,35 @@ export default function AddExpenseScreen() {
   const [splitType, setSplitType] = React.useState<'equal' | 'amount' | 'percent'>('equal');
   const [amountSharesCents, setAmountSharesCents] = React.useState<Record<string, number>>({});
   const [percentShares, setPercentShares] = React.useState<Record<string, number>>({});
+  const [attachments, setAttachments] = React.useState<Attachment[]>([]);
+
+  const pickImages = async () => {
+    try {
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsMultipleSelection: true,
+        selectionLimit: 10,
+        quality: 0.8,
+      });
+      if (!res.canceled) {
+        const next = res.assets.map((a: ImagePicker.ImagePickerAsset) => ({
+          id: `att_${Math.random().toString(36).slice(2, 8)}_${Date.now().toString(36)}`,
+          uri: a.uri,
+          type: a.mimeType,
+          width: a.width,
+          height: a.height,
+          createdAt: Date.now(),
+        }));
+        setAttachments((prev) => [...prev, ...next]);
+      }
+    } catch (e) {
+      console.warn('Image pick failed', e);
+    }
+  };
+
+  const removeAttachment = (id: string) => {
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
+  };
 
   const save = () => {
     const value = amountCents / 100;
@@ -43,7 +76,7 @@ export default function AddExpenseScreen() {
         : splitType === 'percent'
         ? percentShares
         : undefined;
-    addExpense({ groupId: id, description: title.trim(), amount: value, splitType, shares });
+    addExpense({ groupId: id, description: title.trim(), amount: value, splitType, shares, attachments });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     router.back();
   };
@@ -156,6 +189,47 @@ export default function AddExpenseScreen() {
             returnKeyType="done"
             clearButtonMode="while-editing"
           />
+        </FormField>
+
+        <FormField label="Attachments" helper="Add photos or receipts">
+          <View style={{ gap: 12 }}>
+            {attachments.length > 0 ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                {attachments.map((att) => (
+                  <View key={att.id} style={{ position: 'relative' }}>
+                    <Image
+                      source={{ uri: att.uri }}
+                      style={{ width: 88, height: 88, borderRadius: 12, backgroundColor: t.colors.fill }}
+                      contentFit="cover"
+                      accessible
+                      accessibilityLabel="Attachment thumbnail"
+                    />
+                    <Pressable
+                      onPress={() => removeAttachment(att.id)}
+                      accessibilityRole="button"
+                      accessibilityLabel="Remove attachment"
+                      hitSlop={8}
+                      style={({ pressed }) => [
+                        {
+                          position: 'absolute',
+                          top: -6,
+                          right: -6,
+                          backgroundColor: t.colors.danger,
+                          borderRadius: 12,
+                          paddingHorizontal: 6,
+                          paddingVertical: 2,
+                        },
+                        pressed && { opacity: 0.8 },
+                      ]}
+                    >
+                      <Text style={{ color: '#fff', fontWeight: '700' }}>×</Text>
+                    </Pressable>
+                  </View>
+                ))}
+              </ScrollView>
+            ) : null}
+            <Button title="Add Photo" icon="plus" onPress={pickImages} variant="gray" />
+          </View>
         </FormField>
 
         {(() => {

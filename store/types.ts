@@ -15,6 +15,15 @@ export type Group = {
 
 export type SplitType = 'equal' | 'amount' | 'percent';
 
+export type Attachment = {
+  id: ID;
+  uri: string;
+  type?: string; // mime type
+  width?: number;
+  height?: number;
+  createdAt: number;
+};
+
 export type Expense = {
   id: ID;
   groupId: ID;
@@ -23,6 +32,7 @@ export type Expense = {
   paidBy: ID; // memberId
   splitType: SplitType;
   shares?: Record<ID, number>; // used for non-equal splits
+  attachments?: Attachment[]; // optional photos/receipts
   createdAt: number;
 };
 
@@ -88,6 +98,7 @@ export type AddExpensePayload = {
   paidBy?: ID; // default current user
   splitType?: SplitType; // default equal
   shares?: Record<ID, number>; // for 'amount' or 'percent' splits
+  attachments?: Attachment[];
 };
 
 export type EditExpensePayload = {
@@ -97,6 +108,7 @@ export type EditExpensePayload = {
   paidBy?: ID;
   splitType?: SplitType;
   shares?: Record<ID, number>;
+  attachments?: Attachment[];
 };
 
 export type AddRecurringPayload = {

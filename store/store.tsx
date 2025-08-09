@@ -114,6 +114,7 @@ function reducer(state: State, action: Action): State {
         paidBy: paidBy ?? state.currentMemberId,
         splitType,
         shares: action.payload.shares,
+        attachments: (action.payload as any).attachments,
         createdAt: Date.now(),
       };
       const currency = state.groups[groupId]?.currency || state.settings.currency;

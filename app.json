@@ -9,7 +9,12 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Evenly needs access to your photo library to attach receipts to expenses.",
+        "NSPhotoLibraryAddUsageDescription": "Evenly may save images to your library when exporting or sharing receipts.",
+        "NSCameraUsageDescription": "Evenly can use your camera to capture receipt photos."
+      }
     },
     "android": {
       "adaptiveIcon": {
