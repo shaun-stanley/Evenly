@@ -62,6 +62,25 @@ export default function RecurringListScreen() {
   const renderRightActions = (id: string) => (
     <View style={{ flexDirection: 'row', height: '100%' }}>
       <Pressable
+        accessibilityLabel="Edit recurring"
+        accessibilityRole="button"
+        accessibilityHint="Edits this recurring expense"
+        hitSlop={8}
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+          router.push(`/(tabs)/activity/recurring-edit/${id}` as never);
+        }}
+        style={({ pressed }) => [
+          { justifyContent: 'center', alignItems: 'center', width: 88, backgroundColor: t.colors.tint },
+          pressed && { opacity: 0.7 },
+        ]}
+      >
+        <View style={{ alignItems: 'center' }}>
+          <IconSymbol name="pencil" color="#ffffff" size={20} />
+          <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600', marginTop: 4 }}>Edit</Text>
+        </View>
+      </Pressable>
+      <Pressable
         accessibilityLabel="Delete recurring"
         accessibilityRole="button"
         accessibilityHint="Deletes this recurring expense"
@@ -116,7 +135,7 @@ export default function RecurringListScreen() {
             }
             subtitle={
               <Text style={{ color: t.colors.secondaryLabel, marginTop: 2 }}>
-                {formatCurrency(item.amount, { currency: selectCurrencyForGroup(state, item.groupId) })} • {ruleLabel(item.rule.interval, item.rule.frequency)} • Next {new Date(item.nextOccurrenceAt).toLocaleDateString()}
+                {formatCurrency(item.amount, { currency: selectCurrencyForGroup(state, item.groupId) })} • {ruleLabel(item.rule.interval, item.rule.frequency)} • Next {new Date(item.nextOccurrenceAt).toLocaleDateString()} {item.active ? '' : '• Paused'}
               </Text>
             }
             right={
