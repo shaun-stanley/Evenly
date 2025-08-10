@@ -4,7 +4,8 @@ import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
  
 import { useStore, selectGroup, selectExpensesForGroup, computeGroupTotalsForUserInGroup, selectCurrencyForGroup, selectEffectiveLocale } from '@/store/store';
 import { Swipeable } from 'react-native-gesture-handler';
-import * as Haptics from 'expo-haptics';
+import { useHaptics } from '@/hooks/useHaptics';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
 import { useTheme } from '@/hooks/useTheme';
@@ -15,6 +16,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { formatCurrency } from '@/utils/currency';
 import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
 import { BlurView } from 'expo-blur';
+import { toShadowStyle } from '@/utils/shadow';
 
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -23,6 +25,8 @@ export default function GroupDetailScreen() {
   const { state, hydrated, deleteExpense, renameGroup, setGroupCurrency } = useStore();
   const t = useTheme();
   const styles = React.useMemo(() => makeStyles(t), [t]);
+  const haptics = useHaptics();
+  const reducedMotion = useReducedMotion();
   const group = useMemo(() => (id ? selectGroup(state, id) : undefined), [state, id]);
   const expenses = useMemo(
     () => (id ? selectExpensesForGroup(state, id) : []),
@@ -40,18 +44,24 @@ export default function GroupDetailScreen() {
   const [netDisplay, setNetDisplay] = useState(0);
 
   useEffect(() => {
-    Animated.timing(netAnim, {
+    if (reducedMotion) {
+      netAnim.stopAnimation();
+      netAnim.setValue(net);
+      setNetDisplay(net);
+      return;
+    }
+    const anim = Animated.timing(netAnim, {
       toValue: net,
-      duration: 600,
+      duration: t.motion.durations.medium,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: false,
-    }).start();
+    });
+    anim.start();
     const id = netAnim.addListener(({ value }) => setNetDisplay(value));
     return () => {
       netAnim.removeListener(id);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [net]);
+  }, [net, reducedMotion, netAnim, t.motion.durations.medium]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -118,7 +128,18 @@ export default function GroupDetailScreen() {
           )
         : undefined,
     });
-  }, [group?.name, navigation, router, id, renameGroup, t.colors.separator, t.colors.label, t.spacing.s, compact]);
+  }, [
+    group?.name,
+    navigation,
+    router,
+    id,
+    renameGroup,
+    t.colors.separator,
+    t.colors.label,
+    t.spacing.s,
+    t.text.headline,
+    compact,
+  ]);
 
   if (!hydrated) return null;
 
@@ -161,7 +182,7 @@ export default function GroupDetailScreen() {
         accessibilityHint="Edits this expense"
         hitSlop={8}
         onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+          haptics.impact('light');
           router.push(`/group/${id}/edit-expense?expenseId=${expenseId}`);
         }}
         style={({ pressed }) => [
@@ -181,7 +202,7 @@ export default function GroupDetailScreen() {
         accessibilityHint="Deletes this expense"
         hitSlop={8}
         onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+          haptics.impact('light');
           Alert.alert('Delete expense?', 'This cannot be undone.', [
             { text: 'Cancel', style: 'cancel' },
             { text: 'Delete', style: 'destructive', onPress: () => deleteExpense(expenseId) },
@@ -215,9 +236,10 @@ export default function GroupDetailScreen() {
         contentContainerStyle={{ paddingBottom: t.spacing.xxl * 2 }}
       >
         {/* Glass balance card */}
-        <View style={styles.glassCard}>
-          <BlurView tint="default" intensity={40} style={StyleSheet.absoluteFillObject} />
-          <View style={styles.glassInner}>
+        <View style={styles.glassCardOuter}>
+          <View style={styles.glassCard}>
+            <BlurView tint="default" intensity={40} style={StyleSheet.absoluteFillObject} />
+            <View style={styles.glassInner}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Text style={styles.sectionTitle}>Net balance</Text>
               {(groupTotals.owes > 0 || groupTotals.owed > 0) && (
@@ -226,7 +248,7 @@ export default function GroupDetailScreen() {
                   accessibilityLabel="Settle up"
                   accessibilityHint="Record settlements"
                   onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+                    haptics.impact('medium');
                     router.push(`/group/${id}/settle-up`);
                   }}
                   style={({ pressed }) => [styles.settlePill, pressed && { opacity: 0.8 }]}
@@ -256,6 +278,7 @@ export default function GroupDetailScreen() {
               </View>
             </View>
           </View>
+        </View>
         </View>
 
         <View style={styles.sectionHeaderContainer}>
@@ -335,7 +358,7 @@ export default function GroupDetailScreen() {
           accessibilityHint="Adds a new expense"
           onPress={() => {
             if (!id) return;
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+            haptics.impact('medium');
             router.push(`/group/${id}/add-expense`);
           }}
           onLongPress={() => {
@@ -353,7 +376,11 @@ export default function GroupDetailScreen() {
               router.push(`/group/${id}/add-expense`);
             }
           }}
-          style={({ pressed }) => [styles.fab, pressed && { transform: [{ scale: 0.98 }] }]}
+          style={({ pressed }) => [
+            styles.fab,
+            styles.fabShadow,
+            pressed && (reducedMotion ? { opacity: 0.9 } : { transform: [{ scale: 0.98 }] }),
+          ]}
         >
           <BlurView tint="default" intensity={28} style={StyleSheet.absoluteFillObject} />
           <IconSymbol name="plus" color="#ffffff" size={22} />
@@ -391,9 +418,14 @@ function symbolForExpense(desc: string): string {
 function makeStyles(t: Tokens) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background },
-    glassCard: {
+    glassCardOuter: {
       marginHorizontal: t.spacing.l,
       marginTop: t.spacing.l,
+      borderRadius: t.radius.lg,
+      backgroundColor: 'transparent',
+      ...toShadowStyle(t.shadows.card),
+    },
+    glassCard: {
       borderRadius: t.radius.lg,
       overflow: 'hidden',
       borderWidth: StyleSheet.hairlineWidth,
@@ -453,5 +485,6 @@ function makeStyles(t: Tokens) {
       borderColor: t.colors.separator,
       backgroundColor: t.colors.tint,
     },
+    fabShadow: toShadowStyle(t.shadows.floating),
   });
 }

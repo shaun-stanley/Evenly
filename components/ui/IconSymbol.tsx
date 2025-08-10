@@ -5,8 +5,8 @@ import { SymbolWeight, SymbolView, SymbolViewProps } from 'expo-symbols';
 import { ComponentProps } from 'react';
 import { OpaqueColorValue, Platform, type StyleProp, type TextStyle } from 'react-native';
 
-type IconMapping = Partial<Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>>;
-export type IconSymbolName = SymbolViewProps['name'];
+type IconMapping = { [key: string]: ComponentProps<typeof MaterialIcons>['name'] | undefined };
+export type IconSymbolName = string;
 
 /**
  * Add your SF Symbols to Material Icons mappings here.
@@ -65,7 +65,15 @@ export function IconSymbol({
   weight?: SymbolWeight;
 }) {
   if (Platform.OS === 'ios') {
-    return <SymbolView name={name} tintColor={color} size={size} weight={weight} style={style as any} />;
+    return (
+      <SymbolView
+        name={name as SymbolViewProps['name']}
+        tintColor={color}
+        size={size}
+        weight={weight}
+        style={style as any}
+      />
+    );
   }
   return <MaterialIcons color={color} size={size} name={MAPPING[name] ?? 'circle'} style={style} />;
 }

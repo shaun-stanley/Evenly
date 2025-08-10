@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle, type AccessibilityRole } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { IconSymbol } from './IconSymbol';
-import * as Haptics from 'expo-haptics';
+import { useHaptics } from '@/hooks/useHaptics';
 
 export type ListItemProps = {
   title: string | React.ReactNode;
@@ -43,6 +43,7 @@ export function ListItem({
 }: ListItemProps) {
   const t = useTheme();
   const styles = React.useMemo(() => makeStyles(t), [t]);
+  const haptics = useHaptics();
 
   const Content = (
     <View
@@ -91,9 +92,7 @@ export function ListItem({
         accessibilityState={{ disabled: !!disabled }}
         hitSlop={10}
         onPress={() => {
-          if (enableHaptics) {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-          }
+          if (enableHaptics) haptics.impact('light');
           onPress();
         }}
         onLongPress={onLongPress}

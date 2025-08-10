@@ -1,19 +1,25 @@
 import React from 'react';
 import { View, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { toShadowStyle } from '@/utils/shadow';
 
 export type CardProps = {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   padded?: boolean;
+  /** Apply subtle elevation using theme shadow tokens. Defaults to true. */
+  elevated?: boolean;
+  /** Which shadow token to use when elevated. Defaults to 'card'. */
+  variant?: 'card' | 'floating' | 'modal' | 'header';
   testID?: string;
 };
 
-export function Card({ children, style, padded = true, testID }: CardProps) {
+export function Card({ children, style, padded = true, elevated = true, variant = 'card', testID }: CardProps) {
   const t = useTheme();
   const styles = React.useMemo(() => makeStyles(t), [t]);
+  const shadow = React.useMemo(() => (elevated ? toShadowStyle(t.shadows[variant]) : undefined), [elevated, t, variant]);
   return (
-    <View testID={testID} style={[styles.base, padded && styles.padded, style]}>
+    <View testID={testID} style={[styles.base, shadow, padded && styles.padded, style]}>
       {children}
     </View>
   );

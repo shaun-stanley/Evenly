@@ -1,5 +1,5 @@
 import React, { useLayoutEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 
 import { useStore, selectEffectiveLocale } from '@/store/store';
@@ -8,7 +8,7 @@ import { AvatarIcon } from '@/components/ui/AvatarIcon';
 import { colorForActivity } from '@/utils/iconColors';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Separator } from '@/components/ui/Separator';
+import { GroupedSection } from '@/components/ui/GroupedSection';
 
 function iconForType(type: string) {
   switch (type) {
@@ -67,29 +67,16 @@ export default function ActivityDetailScreen() {
       <Text style={{ ...t.text.title3, color: t.colors.label, textAlign: 'center', marginTop: t.spacing.m }}>
         {item.message}
       </Text>
-
-      <View
-        style={{
-          marginTop: t.spacing.l,
-          backgroundColor: t.colors.card,
-          borderRadius: t.radius.md,
-          padding: t.spacing.m,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: t.colors.separator,
-        }}
-        accessibilityRole="summary"
-      >
+      <GroupedSection inset style={{ marginTop: t.spacing.l }}>
         <Row label="Type">
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.s }}>
             <IconSymbol name={iconForType(item.type)} size={16} color={t.colors.secondaryLabel} />
             <Text style={{ ...t.text.callout, color: t.colors.label }}>{item.type.replace(/_/g, ' ')}</Text>
           </View>
         </Row>
-        <Separator inset />
         <Row label="Date">
           <Text style={{ ...t.text.callout, color: t.colors.label }}>{created.toLocaleString(effectiveLocale)}</Text>
         </Row>
-        {typeof item.attachmentsCount === 'number' && item.attachmentsCount > 0 ? <Separator inset /> : null}
         {typeof item.attachmentsCount === 'number' && item.attachmentsCount > 0 ? (
           <Row label="Attachments">
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -98,7 +85,7 @@ export default function ActivityDetailScreen() {
             </View>
           </Row>
         ) : null}
-      </View>
+      </GroupedSection>
 
       <View style={{ height: t.spacing.xxl }} />
     </ScrollView>
@@ -108,7 +95,7 @@ export default function ActivityDetailScreen() {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   const t = useTheme();
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: t.spacing.m }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: t.spacing.m, paddingHorizontal: t.spacing.m }}>
       <Text style={{ width: 110, ...t.text.subheadline, marginRight: t.spacing.s, color: t.colors.secondaryLabel }}>{label}</Text>
       <View style={{ flex: 1 }}>{children}</View>
     </View>

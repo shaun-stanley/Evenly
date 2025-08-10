@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleProp, StyleSheet, Text, TextStyle, ViewStyle } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { useHaptics } from '@/hooks/useHaptics';
 import { useTheme } from '@/hooks/useTheme';
 import { IconSymbol, IconSymbolName } from '@/components/ui/IconSymbol';
 
@@ -35,6 +35,7 @@ export function Button({
 }) {
   const t = useTheme();
   const styles = React.useMemo(() => makeStyles(t), [t]);
+  const haptics = useHaptics();
 
   const bg = variant === 'filled' ? t.colors.tint : variant === 'destructive' ? t.colors.danger : t.colors.fill;
   const fg: StyleProp<TextStyle> = variant === 'filled' || variant === 'destructive' ? { color: '#fff' } : { color: t.colors.label };
@@ -54,7 +55,7 @@ export function Button({
       hitSlop={10}
       onPress={() => {
         if (disabled) return;
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+        haptics.impact('medium');
         onPress();
       }}
       disabled={disabled}

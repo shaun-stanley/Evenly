@@ -3,6 +3,7 @@ import { Modal, Platform, Pressable, StyleSheet, Text, TextInput, View, FlatList
 import { useTheme } from '@/hooks/useTheme';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { LOCALES } from '@/utils/locales';
+import { toShadowStyle } from '@/utils/shadow';
 
 export type LocalePickerProps = {
   visible: boolean;
@@ -39,7 +40,7 @@ export function LocalePicker({ visible, selected, onSelect, onClose, title = 'Se
       transparent={false}
     >
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, styles.headerShadow]}>
           <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} hitSlop={8}>
             <Text style={styles.headerAction}>Cancel</Text>
           </Pressable>
@@ -47,7 +48,7 @@ export function LocalePicker({ visible, selected, onSelect, onClose, title = 'Se
           <View style={{ width: 60 }} />
         </View>
 
-        <View style={styles.searchContainer}>
+        <View style={[styles.searchContainer, styles.searchShadow]}>
           <IconSymbol name="magnifyingglass" size={16} color={t.colors.secondaryLabel as any} />
           <TextInput
             value={query}
@@ -105,6 +106,7 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: t.colors.separator,
     },
+    headerShadow: toShadowStyle(t.shadows.header),
     headerTitle: { color: t.colors.label, fontSize: 16, fontWeight: '600' },
     headerAction: { color: t.colors.tint, fontSize: 16, fontWeight: '600' },
     searchContainer: {
@@ -119,6 +121,7 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
       borderWidth: 1,
       borderColor: t.colors.separator,
     },
+    searchShadow: toShadowStyle(t.shadows.card),
     searchInput: { flex: 1, color: t.colors.label },
     row: {
       paddingHorizontal: 16,
