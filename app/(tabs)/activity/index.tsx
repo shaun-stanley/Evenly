@@ -1,5 +1,5 @@
 import React, { useLayoutEffect } from 'react';
-import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, ScrollView, Text, TextInput, View } from 'react-native';
 import { useStore } from '@/store/store';
 import { useTheme } from '@/hooks/useTheme';
 import { ListItem } from '@/components/ui/ListItem';
@@ -25,7 +25,7 @@ function timeAgo(ts: number): string {
 export default function ActivityScreen() {
   const { state } = useStore();
   const t = useTheme();
-  const styles = React.useMemo(() => makeStyles(), []);
+  // no local styles; using theme tokens directly
   const navigation = useNavigation();
   const router = useRouter();
 
@@ -78,7 +78,7 @@ export default function ActivityScreen() {
   const [query, setQuery] = React.useState('');
   const [filter, setFilter] = React.useState<'all' | 'expenses' | 'recurring' | 'groups' | 'settlements' | 'comments'>('all');
 
-  const matchesFilter = (type: string) => {
+  const matchesFilter = React.useCallback((type: string) => {
     if (filter === 'all') return true;
     if (filter === 'expenses') return type === 'expense_added' || type === 'expense_edited' || type === 'expense_deleted';
     if (filter === 'recurring') return type === 'recurring_added' || type === 'recurring_edited' || type === 'recurring_deleted';
@@ -86,12 +86,12 @@ export default function ActivityScreen() {
     if (filter === 'settlements') return type === 'settlement_recorded';
     if (filter === 'comments') return type === 'comment_added';
     return true;
-  };
+  }, [filter]);
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
     return state.activity.filter((a) => matchesFilter(a.type) && (q.length === 0 || a.message.toLowerCase().includes(q)));
-  }, [state.activity, query, filter]);
+  }, [state.activity, query, matchesFilter]);
 
   return (
     <FlatList
@@ -124,29 +124,37 @@ export default function ActivityScreen() {
               clearButtonMode="while-editing"
             />
           </View>
-          <View
-            accessibilityRole="tablist"
-            style={{ marginTop: t.spacing.m, flexDirection: 'row', backgroundColor: t.colors.card, borderRadius: t.radius.sm, padding: t.spacing.xs }}
-          >
-            {(['all', 'expenses', 'recurring', 'groups', 'settlements', 'comments'] as const).map((f) => (
-              <Text
-                key={f}
-                onPress={() => setFilter(f)}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: filter === f }}
-                style={{
-                  flex: 1,
-                  textAlign: 'center',
-                  paddingVertical: t.spacing.s,
-                  borderRadius: t.radius.sm,
-                  color: filter === f ? 'white' : t.colors.label,
-                  backgroundColor: filter === f ? t.colors.tint : 'transparent',
-                  fontWeight: filter === f ? '600' : '400',
-                }}
-              >
-                {f.charAt(0).toUpperCase() + f.slice(1)}
-              </Text>
-            ))}
+          <View accessibilityRole="tablist" style={{ marginTop: t.spacing.m, backgroundColor: t.colors.card, borderRadius: t.radius.sm }}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: t.spacing.xs, paddingVertical: t.spacing.xs }}
+            >
+              {(['all', 'expenses', 'recurring', 'groups', 'settlements', 'comments'] as const).map((f) => {
+                const selected = filter === f;
+                return (
+                  <Text
+                    key={f}
+                    onPress={() => setFilter(f)}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected }}
+                    numberOfLines={1}
+                    style={{
+                      ...t.text.subheadline,
+                      paddingHorizontal: t.spacing.m,
+                      paddingVertical: t.spacing.s,
+                      borderRadius: t.radius.sm,
+                      color: selected ? 'white' : t.colors.label,
+                      backgroundColor: selected ? t.colors.tint : 'transparent',
+                      fontWeight: selected ? '600' : '400',
+                      marginRight: t.spacing.xs,
+                    }}
+                  >
+                    {f.charAt(0).toUpperCase() + f.slice(1)}
+                  </Text>
+                );
+              })}
+            </ScrollView>
           </View>
         </View>
       }
@@ -155,7 +163,7 @@ export default function ActivityScreen() {
         return (
           <ListItem
             left={<AvatarIcon name={iconForType(item.type)} bgColor={colorForActivity(item.type)} size={18} containerSize={36} />}
-            title={<Text style={{ color: t.colors.label, fontSize: 16, fontWeight: '500' }}>{item.message}</Text>}
+            title={item.message}
             right={
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 {showAttach ? (
@@ -200,6 +208,4 @@ export default function ActivityScreen() {
   );
 }
 
-function makeStyles() {
-  return StyleSheet.create({});
-}
+// no StyleSheet definitions

@@ -28,8 +28,8 @@ export default function AccountScreen() {
       <Card style={styles.card}>
         <Text style={styles.title}>Preferences</Text>
         <ListItem
-          title={<Text style={styles.titleRow}>Default currency</Text>}
-          subtitle={<Text style={styles.muted}>Used when a group hasn't set a currency</Text>}
+          title={"Default currency"}
+          subtitle={"Used when a group hasn't set a currency"}
           right={<Text style={styles.rightText}>{state.settings.currency}</Text>}
           showChevron
           onPress={() => setShowCurrencyPicker(true)}
@@ -37,8 +37,8 @@ export default function AccountScreen() {
           accessibilityHint="Opens currency picker"
         />
         <ListItem
-          title={<Text style={styles.titleRow}>Locale</Text>}
-          subtitle={<Text style={styles.muted}>Number, date, and currency formatting</Text>}
+          title={"Locale"}
+          subtitle={"Number, date, and currency formatting"}
           right={<Text style={styles.rightText}>{localeLabel}</Text>}
           showChevron
           onPress={() => setShowLocalePicker(true)}
@@ -59,6 +59,7 @@ export default function AccountScreen() {
                 Alert.alert('Export complete', `Saved to: ${uri}`);
               }
             } catch (e) {
+              console.error('Export failed', e);
               Alert.alert('Export failed', 'Unable to export at this time.');
             }
           }}
@@ -89,9 +90,9 @@ export default function AccountScreen() {
 function makeStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     card: { marginHorizontal: t.spacing.l, marginTop: t.spacing.l },
-    title: { color: t.colors.label, fontSize: 17, fontWeight: '600', marginBottom: t.spacing.s },
-    titleRow: { color: t.colors.label, fontSize: 16, fontWeight: '600' },
-    muted: { color: t.colors.secondaryLabel, marginTop: t.spacing.xs },
-    rightText: { color: t.colors.label, fontWeight: '600' },
+    title: { ...t.text.title3, color: t.colors.label, marginBottom: t.spacing.s },
+    titleRow: { ...t.text.headline, color: t.colors.label },
+    muted: { ...t.text.subheadline, color: t.colors.secondaryLabel, marginTop: t.spacing.xs },
+    rightText: { ...t.text.headline, color: t.colors.label },
   });
 }

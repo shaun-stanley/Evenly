@@ -117,7 +117,7 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
     left: { marginRight: t.spacing.m },
     center: { flex: 1 },
     right: { marginLeft: t.spacing.s, flexDirection: 'row', alignItems: 'center' },
-    title: { fontSize: 16, fontWeight: '600', color: t.colors.label },
-    subtitle: { marginTop: t.spacing.xs, color: t.colors.secondaryLabel },
+    title: { ...t.text.headline, color: t.colors.label },
+    subtitle: { ...t.text.subheadline, marginTop: t.spacing.xs, color: t.colors.secondaryLabel },
   });
 }

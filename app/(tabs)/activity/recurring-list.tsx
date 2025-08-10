@@ -77,7 +77,7 @@ export default function RecurringListScreen() {
       >
         <View style={{ alignItems: 'center' }}>
           <IconSymbol name="pencil" color="#ffffff" size={20} />
-          <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600', marginTop: t.spacing.xs }}>Edit</Text>
+          <Text style={{ ...t.text.subheadline, color: '#fff', marginTop: t.spacing.xs }}>Edit</Text>
         </View>
       </Pressable>
       <Pressable
@@ -106,7 +106,7 @@ export default function RecurringListScreen() {
       >
         <View style={{ alignItems: 'center' }}>
           <IconSymbol name="trash" color="#ffffff" size={20} />
-          <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600', marginTop: t.spacing.xs }}>Delete</Text>
+          <Text style={{ ...t.text.subheadline, color: '#fff', marginTop: t.spacing.xs }}>Delete</Text>
         </View>
       </Pressable>
     </View>
@@ -128,16 +128,8 @@ export default function RecurringListScreen() {
         <Swipeable renderRightActions={() => renderRightActions(item.id)} overshootRight={false}>
           <ListItem
             left={<AvatarIcon name="arrow.triangle.2.circlepath" bgColor={colorForActivity('recurring_added')} size={18} containerSize={36} />}
-            title={
-              <Text style={{ color: item.active ? t.colors.label : t.colors.secondaryLabel, fontSize: 16, fontWeight: '500' }}>
-                {item.description}
-              </Text>
-            }
-            subtitle={
-              <Text style={{ color: t.colors.secondaryLabel, marginTop: t.spacing.xs }}>
-                {formatCurrency(item.amount, { currency: selectCurrencyForGroup(state, item.groupId), locale: effectiveLocale })} • {ruleLabel(item.rule.interval, item.rule.frequency)} • Next {new Date(item.nextOccurrenceAt).toLocaleDateString(effectiveLocale)} {item.active ? '' : '• Paused'}
-              </Text>
-            }
+            title={item.description}
+            subtitle={`${formatCurrency(item.amount, { currency: selectCurrencyForGroup(state, item.groupId), locale: effectiveLocale })} • ${ruleLabel(item.rule.interval, item.rule.frequency)} • Next ${new Date(item.nextOccurrenceAt).toLocaleDateString(effectiveLocale)} ${item.active ? '' : '• Paused'}`}
             right={
               <Switch
                 value={item.active}

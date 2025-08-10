@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useStore, selectGroup, selectGroupMemberBalances, selectCurrencyForGroup, computeSettlementSuggestions, selectEffectiveLocale } from '@/store/store';
 import { useTheme } from '@/hooks/useTheme';
 import type { Tokens } from '@/theme/tokens';
@@ -12,16 +12,15 @@ import { formatCurrency } from '@/utils/currency';
 export default function SettleUpScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const groupId = String(id || '');
-  const router = useRouter();
   const { state, addSettlement } = useStore();
   const t = useTheme();
   const styles = React.useMemo(() => makeStyles(t), [t]);
 
-  const group = useMemo(() => (id ? selectGroup(state, groupId) : undefined), [state, id]);
+  const group = useMemo(() => (id ? selectGroup(state, groupId) : undefined), [state, id, groupId]);
   const currency = selectCurrencyForGroup(state, id ? groupId : undefined);
   const effectiveLocale = selectEffectiveLocale(state);
-  const balances = useMemo(() => (id ? selectGroupMemberBalances(state, groupId) : {}), [state, id]);
-  const suggestions = useMemo(() => (id ? computeSettlementSuggestions(state, groupId) : []), [state, id]);
+  const balances = useMemo(() => (id ? selectGroupMemberBalances(state, groupId) : {}), [state, id, groupId]);
+  const suggestions = useMemo(() => (id ? computeSettlementSuggestions(state, groupId) : []), [state, id, groupId]);
 
   if (!id || !group) return null;
 
@@ -56,7 +55,7 @@ export default function SettleUpScreen() {
           return (
             <ListItem
               key={mId}
-              title={<Text style={styles.rowTitle}>{nameFor(mId)}</Text>}
+              title={nameFor(mId)}
               right={<Text style={[styles.rowAmount, bal < 0 ? styles.neg : bal > 0 ? styles.pos : styles.muted]}>{formatCurrency(Math.abs(bal), { currency, locale: effectiveLocale })}{bal < 0 ? ' owed' : bal > 0 ? ' due' : ''}</Text>}
               accessibilityLabel={`${nameFor(mId)} balance ${formatCurrency(Math.abs(bal), { currency, locale: effectiveLocale })}`}
               style={{ paddingVertical: 10 }}
@@ -78,11 +77,7 @@ export default function SettleUpScreen() {
           suggestions.map((s, idx) => (
             <ListItem
               key={`${s.fromMemberId}-${s.toMemberId}-${idx}`}
-              title={
-                <Text style={styles.rowTitle}>
-                  {nameFor(s.fromMemberId)} → {nameFor(s.toMemberId)}
-                </Text>
-              }
+              title={`${nameFor(s.fromMemberId)} → ${nameFor(s.toMemberId)}`}
               right={
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <Text style={styles.rowAmount}>{formatCurrency(s.amount, { currency, locale: effectiveLocale })}</Text>
@@ -109,11 +104,11 @@ function makeStyles(t: Tokens) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background, paddingTop: t.spacing.s },
     card: { marginHorizontal: t.spacing.l, marginBottom: t.spacing.l },
-    sectionTitle: { fontSize: t.typography.body.fontSize, fontWeight: '600', marginBottom: t.spacing.s, color: t.colors.label },
-    rowTitle: { fontSize: t.typography.body.fontSize, color: t.colors.label },
-    rowAmount: { fontWeight: '600', color: t.colors.label },
-    helperText: { color: t.colors.secondaryLabel },
-    muted: { color: t.colors.secondaryLabel },
+    sectionTitle: { ...t.text.title3, color: t.colors.label, marginBottom: t.spacing.s },
+    rowTitle: { ...t.text.body, color: t.colors.label },
+    rowAmount: { ...t.text.headline, color: t.colors.label },
+    helperText: { ...t.text.subheadline, color: t.colors.secondaryLabel },
+    muted: { ...t.text.subheadline, color: t.colors.secondaryLabel },
     pos: { color: t.colors.success },
     neg: { color: t.colors.danger },
   });

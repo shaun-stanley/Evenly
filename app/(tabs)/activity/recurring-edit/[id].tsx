@@ -88,7 +88,7 @@ export default function EditRecurringScreen() {
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingBottom: t.spacing.xxl }}>
         <Card style={{ marginHorizontal: t.spacing.l, marginTop: t.spacing.l }}>
           <ListItem
-            title={<Text style={{ color: t.colors.label, fontWeight: '600' }}>Group</Text>}
+            title="Group"
             right={<Text style={{ color: t.colors.secondaryLabel }}>{state.groups[rec.groupId]?.name}</Text>}
             inset={false}
             accessibilityLabel="Group"
@@ -141,7 +141,7 @@ export default function EditRecurringScreen() {
         </Card>
 
         <Card style={{ marginHorizontal: t.spacing.l, marginTop: t.spacing.m, marginBottom: t.spacing.xxl }}>
-          <Text style={{ color: t.colors.secondaryLabel, fontSize: 12, fontWeight: '700', marginBottom: t.spacing.s }}>FREQUENCY</Text>
+          <Text style={{ ...t.text.footnote, color: t.colors.secondaryLabel, fontWeight: '700', marginBottom: t.spacing.s }}>FREQUENCY</Text>
           <View style={{ flexDirection: 'row', gap: t.spacing.s }}>
             {(['daily', 'weekly', 'monthly', 'yearly'] as RecurrenceFrequency[]).map((f) => {
               const selected = f === frequency;
@@ -163,7 +163,7 @@ export default function EditRecurringScreen() {
                     pressed && { opacity: 0.85 },
                   ]}
                 >
-                  <Text style={{ color: selected ? '#fff' : t.colors.label, fontWeight: '600' }}>{f[0].toUpperCase() + f.slice(1)}</Text>
+                  <Text style={{ ...t.text.subheadline, color: selected ? '#fff' : t.colors.label, fontWeight: '600' }}>{f[0].toUpperCase() + f.slice(1)}</Text>
                 </Pressable>
               );
             })}

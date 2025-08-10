@@ -1,7 +1,6 @@
-import React from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import React, { useLayoutEffect } from 'react';
+import { FlatList, View } from 'react-native';
 import { useRouter, useNavigation } from 'expo-router';
-import { useLayoutEffect } from 'react';
 import { useStore, selectGroupsArray } from '@/store/store';
 import { useTheme } from '@/hooks/useTheme';
 import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
@@ -16,7 +15,7 @@ export default function GroupsScreen() {
   const { state, hydrated } = useStore();
   const groups = selectGroupsArray(state);
   const t = useTheme();
-  const styles = React.useMemo(() => makeStyles(t), [t]);
+  // Using ListItem's built-in typography; no local styles needed
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -38,11 +37,11 @@ export default function GroupsScreen() {
       data={groups}
       keyExtractor={(item) => item.id}
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ paddingBottom: 24, paddingTop: 12 }}
+      contentContainerStyle={{ paddingBottom: t.spacing.xxl, paddingTop: t.spacing.s }}
       renderItem={({ item }) => (
         <ListItem
-          title={<Text style={styles.name}>{item.name}</Text>}
-          subtitle={<Text style={styles.meta}>{item.memberIds.length} members</Text>}
+          title={item.name}
+          subtitle={`${item.memberIds.length} members`}
           left={<AvatarIcon name="person.3" bgColor={colorForGroup(item.id)} size={18} containerSize={36} />}
           showChevron
           accessibilityLabel={`Open group ${item.name}`}
@@ -54,12 +53,4 @@ export default function GroupsScreen() {
       ListFooterComponent={<View style={{ height: 24 }} />}
     />
   );
-}
-
-function makeStyles(t: ReturnType<typeof useTheme>) {
-  return StyleSheet.create({
-    info: { flex: 1 },
-    name: { fontSize: 16, fontWeight: '600', color: t.colors.label },
-    meta: { color: t.colors.secondaryLabel, marginTop: 2 },
-  });
 }

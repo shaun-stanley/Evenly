@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useLayoutEffect, useMemo } from 'react';
 import { Alert, ActionSheetIOS, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
-import { useLayoutEffect, useMemo } from 'react';
+ 
 import { useStore, selectGroup, selectExpensesForGroup, computeGroupTotalsForUserInGroup, selectCurrencyForGroup, selectEffectiveLocale } from '@/store/store';
 import { Swipeable } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
@@ -37,7 +37,7 @@ export default function GroupDetailScreen() {
     navigation.setOptions({
       title: group?.name ?? 'Group',
       headerRight: () => (
-        <View style={{ flexDirection: 'row', gap: 8 }}>
+        <View style={{ flexDirection: 'row', gap: t.spacing.s }}>
           <HeaderIconButton
             name="plus"
             accessibilityLabel="Add expense"
@@ -102,7 +102,7 @@ export default function GroupDetailScreen() {
         </View>
       ),
     });
-  }, [group?.name, navigation, router, id, renameGroup]);
+  }, [group?.name, navigation, router, id, renameGroup, t.spacing.s]);
 
   if (!hydrated) return null;
 
@@ -217,7 +217,7 @@ export default function GroupDetailScreen() {
           </View>
         )}
         {groupTotals.owed > 0 && (
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: t.spacing.xs }}>
             <Text style={styles.muted}>You are owed</Text>
             <Text style={[styles.amountPos]}>{formatCurrency(groupTotals.owed, { currency, locale: effectiveLocale })}</Text>
           </View>
@@ -227,8 +227,8 @@ export default function GroupDetailScreen() {
       <Card style={styles.card}>
         <Text style={styles.sectionTitle}>Group</Text>
         <ListItem
-          title={<Text style={styles.expenseTitle}>Currency</Text>}
-          subtitle={<Text style={styles.expenseMeta}>Applies only to this group</Text>}
+          title={"Currency"}
+          subtitle={"Applies only to this group"}
           right={
             <Text style={styles.expenseAmount}>
               {group?.currency ? group.currency : `Default (${state.settings.currency})`}
@@ -261,18 +261,18 @@ export default function GroupDetailScreen() {
           expenses.map((e) => (
             <Swipeable key={e.id} renderRightActions={() => renderRightActions(e.id)} overshootRight={false}>
               <ListItem
-                title={<Text style={styles.expenseTitle}>{e.description}</Text>}
-                subtitle={<Text style={styles.expenseMeta}>Paid by {state.members[e.paidBy]?.name ?? 'Someone'}</Text>}
+                title={e.description}
+                subtitle={`Paid by ${state.members[e.paidBy]?.name ?? 'Someone'}`}
                 right={
                   <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     {e.attachments && e.attachments.length > 0 ? (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: t.spacing.s }}>
                         <IconSymbol name="paperclip" color={t.colors.secondaryLabel} size={16} />
                         <Text style={styles.attachCount}>{e.attachments.length}</Text>
                       </View>
                     ) : null}
                     {e.comments && e.comments.length > 0 ? (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: t.spacing.s }}>
                         <IconSymbol name="text.bubble" color={t.colors.secondaryLabel} size={16} />
                         <Text style={styles.attachCount}>{e.comments.length}</Text>
                       </View>
@@ -308,23 +308,14 @@ function makeStyles(t: Tokens) {
       shadowRadius: t.shadows.card.radius,
     },
     avatar: { width: 44, height: 44, borderRadius: 10, backgroundColor: t.colors.separator, marginRight: t.spacing.m },
-    name: { fontSize: t.typography.title.fontSize, fontWeight: t.typography.title.fontWeight as any, color: t.colors.label },
-    meta: { color: t.colors.secondaryLabel, marginTop: 2 },
+    name: { ...t.text.title2, color: t.colors.label },
+    meta: { ...t.text.subheadline, color: t.colors.secondaryLabel, marginTop: t.spacing.xs },
     card: { marginHorizontal: t.spacing.l, marginBottom: t.spacing.l },
-    sectionTitle: { fontSize: t.typography.body.fontSize, fontWeight: '600', marginBottom: t.spacing.s, color: t.colors.label },
-    muted: { color: t.colors.secondaryLabel },
-    amountNeg: { color: t.colors.danger, fontWeight: '600' },
-    amountPos: { color: t.colors.success, fontWeight: '600' },
-    button: {
-      backgroundColor: t.colors.tint,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 10,
-    },
-    buttonText: { color: 'white', fontWeight: '600' },
-    expenseTitle: { fontSize: t.typography.body.fontSize, fontWeight: '500' as any, color: t.colors.label },
-    expenseMeta: { color: t.colors.secondaryLabel, marginTop: 2 },
-    expenseAmount: { fontWeight: '600', color: t.colors.label },
+    sectionTitle: { ...t.text.title3, color: t.colors.label, marginBottom: t.spacing.s },
+    muted: { ...t.text.subheadline, color: t.colors.secondaryLabel },
+    amountNeg: { ...t.text.headline, color: t.colors.danger },
+    amountPos: { ...t.text.headline, color: t.colors.success },
+    expenseAmount: { ...t.text.headline, color: t.colors.label },
     actionButton: {
       width: 80,
       alignItems: 'center',
@@ -332,7 +323,7 @@ function makeStyles(t: Tokens) {
       borderTopRightRadius: 12,
       borderBottomRightRadius: 12,
     },
-    actionText: { color: 'white', fontWeight: '600' },
-    attachCount: { marginLeft: 4, color: t.colors.secondaryLabel, fontSize: 12, fontWeight: '600' },
+    actionText: { ...t.text.subheadline, color: 'white', fontWeight: '600' },
+    attachCount: { marginLeft: t.spacing.xs, ...t.text.caption1, color: t.colors.secondaryLabel },
   });
 }

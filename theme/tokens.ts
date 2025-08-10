@@ -38,12 +38,27 @@ export type TypographyTokens = {
   footnote: { fontSize: number; fontWeight: '400' };
 };
 
+export type TextTokens = {
+  largeTitle: { fontSize: number; fontWeight: '700' };
+  title1: { fontSize: number; fontWeight: '700' };
+  title2: { fontSize: number; fontWeight: '700' };
+  title3: { fontSize: number; fontWeight: '600' };
+  headline: { fontSize: number; fontWeight: '600' };
+  subheadline: { fontSize: number; fontWeight: '400' | '500' };
+  body: { fontSize: number; fontWeight: '400' };
+  callout: { fontSize: number; fontWeight: '400' };
+  footnote: { fontSize: number; fontWeight: '400' };
+  caption1: { fontSize: number; fontWeight: '400' };
+  caption2: { fontSize: number; fontWeight: '400' };
+};
+
 export type Tokens = {
   colors: ColorTokens;
   spacing: SpacingTokens;
   radius: RadiusTokens;
   shadows: ShadowTokens;
   typography: TypographyTokens;
+  text: TextTokens;
 };
 
 const isiOS = Platform.OS === 'ios';
@@ -71,6 +86,19 @@ export const lightTokens: Tokens = {
     body: { fontSize: 16, fontWeight: '400' },
     footnote: { fontSize: 13, fontWeight: '400' },
   },
+  text: {
+    largeTitle: { fontSize: 34, fontWeight: '700' },
+    title1: { fontSize: 28, fontWeight: '700' },
+    title2: { fontSize: 22, fontWeight: '700' },
+    title3: { fontSize: 20, fontWeight: '600' },
+    headline: { fontSize: 17, fontWeight: '600' },
+    subheadline: { fontSize: 15, fontWeight: '400' },
+    body: { fontSize: 17, fontWeight: '400' },
+    callout: { fontSize: 16, fontWeight: '400' },
+    footnote: { fontSize: 13, fontWeight: '400' },
+    caption1: { fontSize: 12, fontWeight: '400' },
+    caption2: { fontSize: 11, fontWeight: '400' },
+  },
 };
 
 export const darkTokens: Tokens = {
@@ -96,5 +124,18 @@ export const darkTokens: Tokens = {
     title: { fontSize: 18, fontWeight: '700' },
     body: { fontSize: 16, fontWeight: '400' },
     footnote: { fontSize: 13, fontWeight: '400' },
+  },
+  text: {
+    largeTitle: { fontSize: 34, fontWeight: '700' },
+    title1: { fontSize: 28, fontWeight: '700' },
+    title2: { fontSize: 22, fontWeight: '700' },
+    title3: { fontSize: 20, fontWeight: '600' },
+    headline: { fontSize: 17, fontWeight: '600' },
+    subheadline: { fontSize: 15, fontWeight: '400' },
+    body: { fontSize: 17, fontWeight: '400' },
+    callout: { fontSize: 16, fontWeight: '400' },
+    footnote: { fontSize: 13, fontWeight: '400' },
+    caption1: { fontSize: 12, fontWeight: '400' },
+    caption2: { fontSize: 11, fontWeight: '400' },
   },
 };

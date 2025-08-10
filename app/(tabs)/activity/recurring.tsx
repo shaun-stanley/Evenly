@@ -96,10 +96,10 @@ export default function NewRecurringScreen() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', default: undefined })} style={{ flex: 1, backgroundColor: t.colors.background }}>
-      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingBottom: 24 }}>
-        <Card style={{ marginHorizontal: 16, marginTop: 16 }}>
+      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingBottom: t.spacing.xxl }}>
+        <Card style={{ marginHorizontal: t.spacing.l, marginTop: t.spacing.l }}>
           <ListItem
-            title={<Text style={{ color: t.colors.label, fontWeight: '600' }}>Group</Text>}
+            title="Group"
             right={<Text style={{ color: t.colors.secondaryLabel }}>{state.groups[groupId!]?.name}</Text>}
             showChevron
             inset={false}
@@ -116,9 +116,9 @@ export default function NewRecurringScreen() {
               returnKeyType="next"
               style={{
                 backgroundColor: t.colors.card,
-                borderRadius: 10,
-                paddingHorizontal: 12,
-                paddingVertical: 10,
+                borderRadius: t.radius.md,
+                paddingHorizontal: t.spacing.m,
+                paddingVertical: t.spacing.m,
                 color: t.colors.label,
                 borderWidth: 1,
                 borderColor: t.colors.separator,
@@ -141,9 +141,9 @@ export default function NewRecurringScreen() {
               returnKeyType="done"
               style={{
                 backgroundColor: t.colors.card,
-                borderRadius: 10,
-                paddingHorizontal: 12,
-                paddingVertical: 10,
+                borderRadius: t.radius.md,
+                paddingHorizontal: t.spacing.m,
+                paddingVertical: t.spacing.m,
                 color: t.colors.label,
                 borderWidth: 1,
                 borderColor: t.colors.separator,
@@ -152,9 +152,9 @@ export default function NewRecurringScreen() {
           </FormField>
         </Card>
 
-        <Card style={{ marginHorizontal: 16, marginTop: 12, marginBottom: 24 }}>
-          <Text style={{ color: t.colors.secondaryLabel, fontSize: 12, fontWeight: '700', marginBottom: 8 }}>FREQUENCY</Text>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
+        <Card style={{ marginHorizontal: t.spacing.l, marginTop: t.spacing.m, marginBottom: t.spacing.xxl }}>
+          <Text style={{ ...t.text.footnote, color: t.colors.secondaryLabel, fontWeight: '700', marginBottom: t.spacing.s }}>FREQUENCY</Text>
+          <View style={{ flexDirection: 'row', gap: t.spacing.s }}>
             {(['daily', 'weekly', 'monthly', 'yearly'] as RecurrenceFrequency[]).map((f) => {
               const selected = f === frequency;
               return (
@@ -164,9 +164,9 @@ export default function NewRecurringScreen() {
                   style={({ pressed }) => [
                     {
                       backgroundColor: selected ? t.colors.tint : t.colors.card,
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      borderRadius: 12,
+                      paddingHorizontal: t.spacing.m,
+                      paddingVertical: t.spacing.s,
+                      borderRadius: t.radius.md,
                       shadowColor: t.shadows.card.color,
                       shadowOffset: t.shadows.card.offset,
                       shadowOpacity: t.shadows.card.opacity,
@@ -175,7 +175,7 @@ export default function NewRecurringScreen() {
                     pressed && { opacity: 0.85 },
                   ]}
                 >
-                  <Text style={{ color: selected ? '#fff' : t.colors.label, fontWeight: '600' }}>{f[0].toUpperCase() + f.slice(1)}</Text>
+                  <Text style={{ ...t.text.subheadline, color: selected ? '#fff' : t.colors.label, fontWeight: '600' }}>{f[0].toUpperCase() + f.slice(1)}</Text>
                 </Pressable>
               );
             })}
@@ -188,9 +188,9 @@ export default function NewRecurringScreen() {
               keyboardType="number-pad"
               style={{
                 backgroundColor: t.colors.card,
-                borderRadius: 10,
-                paddingHorizontal: 12,
-                paddingVertical: 10,
+                borderRadius: t.radius.md,
+                paddingHorizontal: t.spacing.m,
+                paddingVertical: t.spacing.m,
                 color: t.colors.label,
                 borderWidth: 1,
                 borderColor: t.colors.separator,
@@ -200,7 +200,7 @@ export default function NewRecurringScreen() {
         </Card>
 
         {/* Primary save action */}
-        <View style={{ marginHorizontal: 16 }}>
+        <View style={{ marginHorizontal: t.spacing.l }}>
           <Button
             title="Save recurring"
             variant="filled"

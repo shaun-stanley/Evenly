@@ -8,6 +8,7 @@ import { AvatarIcon } from '@/components/ui/AvatarIcon';
 import { colorForActivity } from '@/utils/iconColors';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Separator } from '@/components/ui/Separator';
 
 function iconForType(type: string) {
   switch (type) {
@@ -63,7 +64,7 @@ export default function ActivityDetailScreen() {
         <AvatarIcon name={iconForType(item.type)} bgColor={colorForActivity(item.type)} size={28} containerSize={64} />
       </View>
 
-      <Text style={{ color: t.colors.label, fontSize: 20, fontWeight: '600', textAlign: 'center', marginTop: t.spacing.m }}>
+      <Text style={{ ...t.text.title3, color: t.colors.label, textAlign: 'center', marginTop: t.spacing.m }}>
         {item.message}
       </Text>
 
@@ -81,19 +82,21 @@ export default function ActivityDetailScreen() {
         accessibilityRole="summary"
       >
         <Row label="Type">
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: t.spacing.s }}>
             <IconSymbol name={iconForType(item.type)} size={16} color={t.colors.secondaryLabel} />
-            <Text style={{ color: t.colors.label, fontSize: 16 }}>{item.type.replace(/_/g, ' ')}</Text>
+            <Text style={{ ...t.text.callout, color: t.colors.label }}>{item.type.replace(/_/g, ' ')}</Text>
           </View>
         </Row>
+        <Separator inset />
         <Row label="Date">
-          <Text style={{ color: t.colors.label, fontSize: 16 }}>{created.toLocaleString(effectiveLocale)}</Text>
+          <Text style={{ ...t.text.callout, color: t.colors.label }}>{created.toLocaleString(effectiveLocale)}</Text>
         </Row>
+        {typeof item.attachmentsCount === 'number' && item.attachmentsCount > 0 ? <Separator inset /> : null}
         {typeof item.attachmentsCount === 'number' && item.attachmentsCount > 0 ? (
           <Row label="Attachments">
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <IconSymbol name="paperclip" size={16} color={t.colors.secondaryLabel} />
-              <Text style={{ marginLeft: t.spacing.xs, color: t.colors.label, fontSize: 16 }}>{item.attachmentsCount}</Text>
+              <Text style={{ marginLeft: t.spacing.xs, ...t.text.callout, color: t.colors.label }}>{item.attachmentsCount}</Text>
             </View>
           </Row>
         ) : null}
@@ -108,7 +111,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   const t = useTheme();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: t.spacing.m }}>
-      <Text style={{ width: 110, fontSize: 14, marginRight: t.spacing.s, color: t.colors.secondaryLabel }}>{label}</Text>
+      <Text style={{ width: 110, ...t.text.subheadline, marginRight: t.spacing.s, color: t.colors.secondaryLabel }}>{label}</Text>
       <View style={{ flex: 1 }}>{children}</View>
     </View>
   );
