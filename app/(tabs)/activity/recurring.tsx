@@ -1,5 +1,5 @@
 import React, { useLayoutEffect } from 'react';
-import { ActionSheetIOS, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActionSheetIOS, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useNavigation, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
@@ -183,10 +183,8 @@ export default function NewRecurringScreen() {
                         paddingHorizontal: t.spacing.m,
                         paddingVertical: t.spacing.s,
                         borderRadius: t.radius.md,
-                        shadowColor: t.shadows.card.color,
-                        shadowOffset: t.shadows.card.offset,
-                        shadowOpacity: t.shadows.card.opacity,
-                        shadowRadius: t.shadows.card.radius,
+                        borderWidth: StyleSheet.hairlineWidth,
+                        borderColor: t.colors.separator,
                       },
                       pressed && { opacity: 0.85 },
                     ]}

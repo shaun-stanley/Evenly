@@ -10,6 +10,7 @@ export type ListItemProps = {
   left?: React.ReactNode;
   right?: React.ReactNode;
   onPress?: () => void;
+  onLongPress?: () => void;
   style?: StyleProp<ViewStyle>;
   showChevron?: boolean;
   disabled?: boolean;
@@ -28,6 +29,7 @@ export function ListItem({
   left,
   right,
   onPress,
+  onLongPress,
   style,
   showChevron = false,
   disabled = false,
@@ -53,7 +55,7 @@ export function ListItem({
       {left ? <View style={styles.left}>{left}</View> : null}
       <View style={styles.center}>
         {typeof title === 'string' ? (
-          <Text style={styles.title} numberOfLines={1}>
+          <Text allowFontScaling style={styles.title} numberOfLines={1}>
             {title}
           </Text>
         ) : (
@@ -61,7 +63,7 @@ export function ListItem({
         )}
         {subtitle ? (
           typeof subtitle === 'string' ? (
-            <Text style={styles.subtitle} numberOfLines={1}>
+            <Text allowFontScaling style={styles.subtitle} numberOfLines={1}>
               {subtitle}
             </Text>
           ) : (
@@ -84,15 +86,17 @@ export function ListItem({
         testID={testID}
         disabled={disabled}
         accessibilityRole={accessibilityRole ?? 'button'}
-        accessibilityLabel={accessibilityLabel}
+        accessibilityLabel={accessibilityLabel ?? (typeof title === 'string' ? title : undefined)}
         accessibilityHint={accessibilityHint}
-        hitSlop={8}
+        accessibilityState={{ disabled: !!disabled }}
+        hitSlop={10}
         onPress={() => {
           if (enableHaptics) {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
           }
           onPress();
         }}
+        onLongPress={onLongPress}
         style={({ pressed }) => [
           variant === 'card' && styles.pressable,
           variant === 'card' && !inset && { marginHorizontal: 0, marginTop: 0 },
@@ -123,10 +127,8 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
     containerCard: {
       backgroundColor: t.colors.card,
       borderRadius: t.radius.md,
-      shadowColor: t.shadows.card.color,
-      shadowOffset: t.shadows.card.offset,
-      shadowOpacity: t.shadows.card.opacity,
-      shadowRadius: t.shadows.card.radius,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.separator,
     },
     containerRow: {
       backgroundColor: 'transparent',

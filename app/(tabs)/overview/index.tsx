@@ -217,10 +217,8 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
       paddingHorizontal: t.spacing.l,
       paddingVertical: t.spacing.m,
       borderRadius: t.radius.md,
-      shadowColor: t.shadows.card.color,
-      shadowOffset: t.shadows.card.offset,
-      shadowOpacity: t.shadows.card.opacity,
-      shadowRadius: t.shadows.card.radius,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.separator,
     },
     ctaText: { color: '#fff', fontWeight: '600' },
     emptyButton: {

@@ -1,5 +1,5 @@
 import React, { useLayoutEffect } from 'react';
-import { FlatList, ScrollView, Text, TextInput, View } from 'react-native';
+import { FlatList, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
 import { useStore } from '@/store/store';
 import { useTheme } from '@/hooks/useTheme';
 import { ListItem } from '@/components/ui/ListItem';
@@ -107,10 +107,8 @@ export default function ActivityScreen() {
               borderRadius: 12,
               paddingHorizontal: t.spacing.m,
               paddingVertical: t.spacing.s,
-              shadowColor: t.shadows.card.color,
-              shadowOffset: t.shadows.card.offset,
-              shadowOpacity: t.shadows.card.opacity,
-              shadowRadius: t.shadows.card.radius,
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: t.colors.separator,
             }}
           >
             <TextInput

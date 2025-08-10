@@ -5,23 +5,33 @@ import { useTheme } from '@/hooks/useTheme';
 import { IconSymbol, IconSymbolName } from '@/components/ui/IconSymbol';
 
 export type ButtonVariant = 'filled' | 'gray' | 'destructive';
+export type ButtonSize = 'small' | 'medium' | 'large';
+export type ButtonShape = 'rounded' | 'pill';
 
 export function Button({
   title,
   onPress,
   icon,
   variant = 'filled',
+  size = 'medium',
+  shape = 'rounded',
+  block = false,
   style,
   disabled,
   accessibilityLabel,
+  accessibilityHint,
 }: {
   title: string;
   onPress: () => void;
   icon?: IconSymbolName;
   variant?: ButtonVariant;
+  size?: ButtonSize;
+  shape?: ButtonShape;
+  block?: boolean;
   style?: StyleProp<ViewStyle>;
   disabled?: boolean;
   accessibilityLabel?: string;
+  accessibilityHint?: string;
 }) {
   const t = useTheme();
   const styles = React.useMemo(() => makeStyles(t), [t]);
@@ -30,10 +40,18 @@ export function Button({
   const fg: StyleProp<TextStyle> = variant === 'filled' || variant === 'destructive' ? { color: '#fff' } : { color: t.colors.label };
   const iconColor = (variant === 'filled' || variant === 'destructive') ? '#fff' : t.colors.label;
 
+  const sizeStyle = size === 'small' ? styles.sizeSmall : size === 'large' ? styles.sizeLarge : styles.sizeMedium;
+  const shapeStyle = shape === 'pill' ? styles.shapePill : styles.shapeRounded;
+  const textStyle = size === 'small' ? styles.titleSmall : size === 'large' ? styles.titleLarge : styles.title;
+  const iconSize = size === 'small' ? 14 : size === 'large' ? 18 : 16;
+
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: !!disabled }}
+      hitSlop={10}
       onPress={() => {
         if (disabled) return;
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
@@ -42,14 +60,17 @@ export function Button({
       disabled={disabled}
       style={({ pressed }) => [
         styles.button,
+        sizeStyle,
+        shapeStyle,
         { backgroundColor: bg },
+        block && { alignSelf: 'stretch', justifyContent: 'center' },
         disabled && { opacity: 0.6 },
         pressed && { opacity: 0.85 },
         style,
       ]}
     >
-      {icon ? <IconSymbol name={icon} color={iconColor as any} size={16} /> : null}
-      <Text style={[styles.title, fg]}>{title}</Text>
+      {icon ? <IconSymbol name={icon} color={iconColor as any} size={iconSize} /> : null}
+      <Text allowFontScaling style={[textStyle, fg]}>{title}</Text>
     </Pressable>
   );
 }
@@ -60,14 +81,15 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: t.spacing.s,
-      paddingHorizontal: t.spacing.l,
-      paddingVertical: t.spacing.m,
-      borderRadius: t.radius.md,
-      shadowColor: t.shadows.card.color,
-      shadowOffset: t.shadows.card.offset,
-      shadowOpacity: t.shadows.card.opacity,
-      shadowRadius: t.shadows.card.radius,
+      minHeight: 44,
     },
-    title: { fontWeight: '600' },
+    sizeSmall: { paddingHorizontal: t.spacing.m, paddingVertical: t.spacing.s },
+    sizeMedium: { paddingHorizontal: t.spacing.l, paddingVertical: t.spacing.m },
+    sizeLarge: { paddingHorizontal: t.spacing.xl, paddingVertical: t.spacing.l },
+    shapeRounded: { borderRadius: t.radius.md },
+    shapePill: { borderRadius: 999 },
+    title: { ...t.text.callout, fontWeight: '600' },
+    titleSmall: { ...t.text.footnote, fontWeight: '600' },
+    titleLarge: { ...t.text.body, fontWeight: '600' },
   });
 }

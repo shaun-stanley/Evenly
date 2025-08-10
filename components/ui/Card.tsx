@@ -24,10 +24,8 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
     base: {
       backgroundColor: t.colors.card,
       borderRadius: t.radius.md,
-      shadowColor: t.shadows.card.color,
-      shadowOffset: t.shadows.card.offset,
-      shadowOpacity: t.shadows.card.opacity,
-      shadowRadius: t.shadows.card.radius,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.separator,
     },
     padded: { paddingHorizontal: t.spacing.l, paddingVertical: t.spacing.l },
   });

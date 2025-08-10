@@ -6,7 +6,8 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import type { Tokens } from '@/theme/tokens';
 import { centsFromText, textFromCents, formatCurrency } from '@/utils/currency';
-import { FormField } from '@/components/ui/FormField';
+import { GroupedSection } from '@/components/ui/GroupedSection';
+import { ListItem } from '@/components/ui/ListItem';
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import { Button } from '@/components/ui/Button';
@@ -233,27 +234,34 @@ export default function EditExpenseScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.container}
       >
-        <FormField label="Title" required>
-          <TextInput
-            placeholder="Dinner"
-            placeholderTextColor={t.colors.secondaryLabel}
-            value={title}
-            onChangeText={setTitle}
-            style={styles.input}
-            accessibilityLabel="Title"
-            accessibilityHint="Edit the description for this expense"
-            autoFocus
-            returnKeyType="next"
-            blurOnSubmit={false}
-            onSubmitEditing={() => amountRef.current?.focus()}
-            clearButtonMode="while-editing"
-            autoCapitalize="words"
+        <GroupedSection>
+          <ListItem
+            variant="row"
+            title="Title"
+            right={
+              <TextInput
+                placeholder="Dinner"
+                placeholderTextColor={t.colors.secondaryLabel}
+                value={title}
+                onChangeText={setTitle}
+                style={styles.inputRow}
+                accessibilityLabel="Title"
+                accessibilityHint="Edit the description for this expense"
+                autoFocus
+                returnKeyType="next"
+                blurOnSubmit={false}
+                onSubmitEditing={() => amountRef.current?.focus()}
+                clearButtonMode="while-editing"
+                autoCapitalize="words"
+              />
+            }
           />
-        </FormField>
+        </GroupedSection>
 
-        <FormField label={`Attachments${attachments.length ? ` (${attachments.length})` : ''}`} helper="Add photos or receipts">
-          <View style={{ gap: 12 }}>
-            {attachments.length > 0 ? (
+        <GroupedSection>
+          <ListItem variant="row" title={`Attachments${attachments.length ? ` (${attachments.length})` : ''}`} />
+          {attachments.length > 0 ? (
+            <View style={styles.attachmentsPad}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
                 {attachments.map((att, idx) => (
                   <View key={att.id} style={{ position: 'relative' }}>
@@ -288,13 +296,15 @@ export default function EditExpenseScreen() {
                   </View>
                 ))}
               </ScrollView>
-            ) : null}
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <Button title="Add Photo" icon="plus" onPress={pickImages} variant="gray" />
-              <Button title="Take Photo" icon="camera" onPress={takePhoto} variant="gray" />
+            </View>
+          ) : null}
+          <View style={[styles.attachmentsPad, { paddingTop: 0 }]}> 
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <Button title="Add Photo" icon="plus" onPress={pickImages} variant="gray" size="small" shape="pill" />
+              <Button title="Take Photo" icon="camera" onPress={takePhoto} variant="gray" size="small" shape="pill" />
             </View>
           </View>
-        </FormField>
+        </GroupedSection>
 
         <Modal visible={viewerIndex !== null} transparent animationType="fade" onRequestClose={() => setViewerIndex(null)}>
           <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', alignItems: 'center', justifyContent: 'center' }} onPress={() => setViewerIndex(null)}>
@@ -309,97 +319,108 @@ export default function EditExpenseScreen() {
             ) : null}
           </Pressable>
         </Modal>
-        <FormField
-          label="Split"
-          helper={splitType === 'equal' ? 'Split equally among members' : splitType === 'amount' ? 'Enter amounts per person (we will normalize to total)' : 'Enter percentage per person (we will normalize to 100%)'}
-        >
-          <View style={styles.segmentRow} accessibilityRole="tablist">
-            {(['equal', 'amount', 'percent'] as const).map((opt) => (
-              <Pressable
-                key={opt}
-                onPress={() => setSplitType(opt)}
-                style={[styles.segment, splitType === opt && styles.segmentSelected]}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: splitType === opt }}
-                accessibilityLabel={opt === 'equal' ? 'Equal' : opt === 'amount' ? 'Amount' : 'Percent'}
-                hitSlop={8}
-              >
-                <Text style={[styles.segmentText, splitType === opt && styles.segmentTextSelected]}>
-                  {opt === 'equal' ? 'Equal' : opt === 'amount' ? 'Amount' : 'Percent'}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </FormField>
+        <GroupedSection>
+          <ListItem
+            variant="row"
+            title="Split"
+            subtitle={splitType === 'equal' ? 'Split equally among members' : splitType === 'amount' ? 'Enter amounts per person (we will normalize to total)' : 'Enter percentage per person (we will normalize to 100%)'}
+            right={
+              <View style={styles.segmentRow} accessibilityRole="tablist">
+                {(['equal', 'amount', 'percent'] as const).map((opt) => (
+                  <Pressable
+                    key={opt}
+                    onPress={() => setSplitType(opt)}
+                    style={[styles.segment, splitType === opt && styles.segmentSelected]}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: splitType === opt }}
+                    accessibilityLabel={opt === 'equal' ? 'Equal' : opt === 'amount' ? 'Amount' : 'Percent'}
+                    hitSlop={8}
+                  >
+                    <Text style={[styles.segmentText, splitType === opt && styles.segmentTextSelected]}>
+                      {opt === 'equal' ? 'Equal' : opt === 'amount' ? 'Amount' : 'Percent'}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            }
+          />
+        </GroupedSection>
 
         {(() => {
           const group = expense ? state.groups[expense.groupId] : undefined;
           if (!group || splitType === 'equal') return null;
           return (
-            <View>
+            <GroupedSection>
               {group.memberIds.map((mid) => (
-                <FormField key={mid} label={state.members[mid]?.name ?? 'Member'}>
-                  {splitType === 'amount' ? (
-                    <TextInput
-                      placeholder="0.00"
-                      placeholderTextColor={t.colors.secondaryLabel}
-                      keyboardType="number-pad"
-                      value={textFromCents(amountSharesCents[mid] || 0)}
-                      onChangeText={(tx) =>
-                        setAmountSharesCents((prev) => ({ ...prev, [mid]: centsFromText(tx) }))
-                      }
-                      style={styles.input}
-                      accessibilityLabel={`Amount for ${state.members[mid]?.name ?? 'member'}`}
-                      returnKeyType="done"
-                      clearButtonMode="while-editing"
-                    />
-                  ) : (
-                    <TextInput
-                      placeholder="0"
-                      placeholderTextColor={t.colors.secondaryLabel}
-                      keyboardType="number-pad"
-                      value={String(percentShares[mid] ?? '')}
-                      onChangeText={(tx) =>
-                        setPercentShares((prev) => ({ ...prev, [mid]: Number((tx || '0').replace(/\D/g, '')) }))
-                      }
-                      style={styles.input}
-                      accessibilityLabel={`Percent for ${state.members[mid]?.name ?? 'member'}`}
-                      returnKeyType="done"
-                      clearButtonMode="while-editing"
-                    />
-                  )}
-                </FormField>
+                <ListItem
+                  key={mid}
+                  variant="row"
+                  title={state.members[mid]?.name ?? 'Member'}
+                  right={
+                    splitType === 'amount' ? (
+                      <TextInput
+                        placeholder="0.00"
+                        placeholderTextColor={t.colors.secondaryLabel}
+                        keyboardType="number-pad"
+                        value={textFromCents(amountSharesCents[mid] || 0)}
+                        onChangeText={(tx) => setAmountSharesCents((prev) => ({ ...prev, [mid]: centsFromText(tx) }))}
+                        style={[styles.inputRow, { textAlign: 'right' }]}
+                        accessibilityLabel={`Amount for ${state.members[mid]?.name ?? 'member'}`}
+                        returnKeyType="done"
+                        clearButtonMode="while-editing"
+                      />
+                    ) : (
+                      <TextInput
+                        placeholder="0"
+                        placeholderTextColor={t.colors.secondaryLabel}
+                        keyboardType="number-pad"
+                        value={String(percentShares[mid] ?? '')}
+                        onChangeText={(tx) =>
+                          setPercentShares((prev) => ({ ...prev, [mid]: Number((tx || '0').replace(/\D/g, '')) }))
+                        }
+                        style={[styles.inputRow, { textAlign: 'right' }]}
+                        accessibilityLabel={`Percent for ${state.members[mid]?.name ?? 'member'}`}
+                        returnKeyType="done"
+                        clearButtonMode="while-editing"
+                      />
+                    )
+                  }
+                />
               ))}
-            </View>
+            </GroupedSection>
           );
         })()}
 
-        <FormField
-          label="Amount"
-          required
-          helper={(() => {
-            const v = amountCents / 100;
-            if (!isNaN(v) && v > 0) return <Text style={styles.helper}>Will update to {formatCurrency(v, { currency, locale: effectiveLocale })}</Text>;
-            return null;
-          })()}
-        >
-          <TextInput
-            ref={amountRef}
-            placeholder="0.00"
-            placeholderTextColor={t.colors.secondaryLabel}
-            keyboardType="number-pad"
-            value={textFromCents(amountCents)}
-            onChangeText={(tx) => setAmountCents(centsFromText(tx))}
-            style={styles.input}
-            accessibilityLabel="Amount"
-            accessibilityHint="Edit the amount in dollars and cents"
-            returnKeyType="done"
-            clearButtonMode="while-editing"
+        <GroupedSection>
+          <ListItem
+            variant="row"
+            title="Amount"
+            subtitle={(() => {
+              const v = amountCents / 100;
+              if (!isNaN(v) && v > 0) return <Text style={styles.helper}>Will update to {formatCurrency(v, { currency, locale: effectiveLocale })}</Text>;
+              return undefined;
+            })()}
+            right={
+              <TextInput
+                ref={amountRef}
+                placeholder={formatCurrency(0, { currency, locale: effectiveLocale })}
+                placeholderTextColor={t.colors.secondaryLabel}
+                keyboardType="number-pad"
+                value={textFromCents(amountCents)}
+                onChangeText={(tx) => setAmountCents(centsFromText(tx))}
+                style={[styles.inputRow, { textAlign: 'right' }]}
+                accessibilityLabel="Amount"
+                accessibilityHint="Edit the amount in dollars and cents"
+                returnKeyType="done"
+                clearButtonMode="while-editing"
+              />
+            }
           />
-        </FormField>
+        </GroupedSection>
 
-        <FormField label={`Comments${expense?.comments?.length ? ` (${expense.comments.length})` : ''}`} helper="Discuss this expense">
-          <View style={{ gap: 12 }}>
+        <GroupedSection>
+          <ListItem variant="row" title={`Comments${expense?.comments?.length ? ` (${expense.comments.length})` : ''}`} />
+          <View style={styles.attachmentsPad}>
             {expense?.comments && expense.comments.length > 0 ? (
               <View style={{ gap: 8 }}>
                 {expense.comments.map((c) => (
@@ -409,10 +430,8 @@ export default function EditExpenseScreen() {
                       backgroundColor: t.colors.card,
                       borderRadius: t.radius.md,
                       padding: 10,
-                      shadowColor: t.shadows.card.color,
-                      shadowOffset: t.shadows.card.offset,
-                      shadowOpacity: t.shadows.card.opacity,
-                      shadowRadius: t.shadows.card.radius,
+                      borderWidth: StyleSheet.hairlineWidth,
+                      borderColor: t.colors.separator,
                     }}
                     accessible
                     accessibilityLabel={`Comment by ${state.members[c.memberId]?.name ?? 'member'}`}
@@ -427,7 +446,7 @@ export default function EditExpenseScreen() {
             ) : (
               <Text style={{ color: t.colors.secondaryLabel }}>No comments yet.</Text>
             )}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
               <TextInput
                 placeholder="Add a comment"
                 placeholderTextColor={t.colors.secondaryLabel}
@@ -470,24 +489,22 @@ export default function EditExpenseScreen() {
               </Pressable>
             </View>
           </View>
-        </FormField>
+        </GroupedSection>
 
         {(() => {
           const v = amountCents / 100;
           const valid = title.trim().length > 0 && !isNaN(v) && amountCents > 0;
           return (
-            <Pressable
-              style={[styles.primary, !valid && styles.primaryDisabled]}
+            <Button
+              title="Save"
               onPress={save}
               disabled={!valid}
-              accessibilityRole="button"
               accessibilityLabel="Save changes"
-              accessibilityHint="Updates this expense"
-              accessibilityState={{ disabled: !valid }}
-              hitSlop={8}
-            >
-              <Text style={styles.primaryText}>Save</Text>
-            </Pressable>
+              size="large"
+              shape="pill"
+              block
+              style={{ marginHorizontal: t.spacing.l, marginTop: t.spacing.l, marginBottom: t.spacing.xl }}
+            />
           );
         })()}
       </ScrollView>
@@ -497,9 +514,7 @@ export default function EditExpenseScreen() {
 
 function makeStyles(t: Tokens) {
   return StyleSheet.create({
-    container: { padding: 16, backgroundColor: t.colors.background, flexGrow: 1 },
-    field: { marginBottom: 16 },
-    label: { marginBottom: 8, color: t.colors.secondaryLabel },
+    container: { backgroundColor: t.colors.background, flexGrow: 1, paddingBottom: t.spacing.xl },
     input: {
       backgroundColor: t.colors.card,
       borderRadius: t.radius.md,
@@ -507,16 +522,22 @@ function makeStyles(t: Tokens) {
       paddingVertical: 10,
       fontSize: 16,
       color: t.colors.label,
-      shadowColor: t.shadows.card.color,
-      shadowOffset: t.shadows.card.offset,
-      shadowOpacity: t.shadows.card.opacity,
-      shadowRadius: t.shadows.card.radius,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: t.colors.separator,
+    },
+    inputRow: {
+      paddingHorizontal: 0,
+      paddingVertical: 0,
+      fontSize: 17,
+      color: t.colors.label,
+      minWidth: 120,
     },
     segmentRow: {
       flexDirection: 'row',
       backgroundColor: t.colors.card,
       borderRadius: t.radius.md,
       padding: 4,
+      marginTop: 4,
     },
     segment: {
       flex: 1,
@@ -529,17 +550,10 @@ function makeStyles(t: Tokens) {
     },
     segmentText: { color: t.colors.label },
     segmentTextSelected: { color: 'white', fontWeight: '600' },
-    primary: {
-      marginTop: 24,
-      backgroundColor: t.colors.tint,
-      borderRadius: t.radius.md,
-      alignItems: 'center',
-      paddingVertical: 12,
+    attachmentsPad: {
+      paddingHorizontal: t.spacing.l,
+      paddingVertical: t.spacing.m,
     },
-    primaryDisabled: {
-      opacity: 0.5,
-    },
-    primaryText: { color: 'white', fontWeight: '600', fontSize: 16 },
     helper: { marginTop: 6, color: t.colors.secondaryLabel },
   });
 }

@@ -56,6 +56,7 @@ export function IconSymbol({
   size = 24,
   color,
   style,
+  weight,
 }: {
   name: IconSymbolName;
   size?: number;
@@ -64,7 +65,7 @@ export function IconSymbol({
   weight?: SymbolWeight;
 }) {
   if (Platform.OS === 'ios') {
-    return <SymbolView name={name} tintColor={color} size={size} style={style as any} />;
+    return <SymbolView name={name} tintColor={color} size={size} weight={weight} style={style as any} />;
   }
   return <MaterialIcons color={color} size={size} name={MAPPING[name] ?? 'circle'} style={style} />;
 }

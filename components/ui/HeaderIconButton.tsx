@@ -18,7 +18,8 @@ export function HeaderIconButton({ name, onPress, accessibilityLabel, accessibil
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
       accessibilityHint={accessibilityHint}
-      hitSlop={8}
+      accessibilityState={{ disabled: !!disabled }}
+      hitSlop={10}
       onPress={onPress}
       disabled={disabled}
       style={({ pressed }) => [
@@ -27,7 +28,7 @@ export function HeaderIconButton({ name, onPress, accessibilityLabel, accessibil
       ]}
     >
       <View style={styles.touchTarget}>
-        <IconSymbol name={name} color={disabled ? t.colors.secondaryLabel : t.colors.tint} size={22} />
+        <IconSymbol name={name} color={disabled ? t.colors.secondaryLabel : t.colors.tint} size={22} weight="semibold" />
       </View>
     </Pressable>
   );

@@ -1,5 +1,5 @@
 import React, { useLayoutEffect } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 
 import { useStore, selectEffectiveLocale } from '@/store/store';
@@ -74,10 +74,8 @@ export default function ActivityDetailScreen() {
           backgroundColor: t.colors.card,
           borderRadius: t.radius.md,
           padding: t.spacing.m,
-          shadowColor: t.shadows.card.color,
-          shadowOffset: t.shadows.card.offset,
-          shadowOpacity: t.shadows.card.opacity,
-          shadowRadius: t.shadows.card.radius,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderColor: t.colors.separator,
         }}
         accessibilityRole="summary"
       >

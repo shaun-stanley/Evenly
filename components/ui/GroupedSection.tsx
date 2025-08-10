@@ -33,10 +33,6 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
       backgroundColor: t.colors.card,
       borderRadius: t.radius.md,
       overflow: 'hidden',
-      shadowColor: t.shadows.card.color,
-      shadowOffset: t.shadows.card.offset,
-      shadowOpacity: t.shadows.card.opacity,
-      shadowRadius: t.shadows.card.radius,
     },
     row: {},
   });

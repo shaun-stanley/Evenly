@@ -1,11 +1,20 @@
 import React from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, TextInput, View, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useStore } from '@/store/store';
+import { useTheme } from '@/hooks/useTheme';
+import type { Tokens } from '@/theme/tokens';
+import { GroupedSection } from '@/components/ui/GroupedSection';
+import { ListItem } from '@/components/ui/ListItem';
+import { Button } from '@/components/ui/Button';
+import { IconSymbol } from '@/components/ui/IconSymbol';
+import * as Haptics from 'expo-haptics';
 
 export default function CreateGroupScreen() {
   const router = useRouter();
   const { state, addGroup, hydrated } = useStore();
+  const t = useTheme();
+  const styles = React.useMemo(() => makeStyles(t), [t]);
   const [name, setName] = React.useState('');
   const [selected, setSelected] = React.useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
@@ -15,7 +24,10 @@ export default function CreateGroupScreen() {
 
   if (!hydrated) return null;
 
-  const toggle = (id: string) => setSelected((s) => ({ ...s, [id]: !s[id] }));
+  const toggle = (id: string) => {
+    Haptics.selectionAsync().catch(() => {});
+    setSelected((s) => ({ ...s, [id]: !s[id] }));
+  };
 
   const onCreate = () => {
     const memberIds = Object.keys(selected).filter((id) => selected[id]);
@@ -28,67 +40,81 @@ export default function CreateGroupScreen() {
     router.back();
   };
 
+  const members = Object.values(state.members);
+
   return (
-    <View style={{ flex: 1 }}>
-      <View style={styles.card}>
-        <Text style={styles.label}>Group name</Text>
-        <TextInput
-          placeholder="Enter name"
-          value={name}
-          onChangeText={setName}
-          style={styles.input}
-          returnKeyType="done"
+    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+      {/* Details section */}
+      <GroupedSection>
+        <ListItem
+          variant="row"
+          title="Group name"
+          right={
+            <TextInput
+              placeholder="Enter name"
+              placeholderTextColor={t.colors.secondaryLabel}
+              value={name}
+              onChangeText={setName}
+              style={styles.inputRow}
+              returnKeyType="done"
+              accessibilityLabel="Group name"
+              clearButtonMode="while-editing"
+            />
+          }
         />
-      </View>
+      </GroupedSection>
 
-      <View style={styles.card}>
-        <Text style={styles.label}>Members</Text>
-        <FlatList
-          data={Object.values(state.members)}
-          keyExtractor={(m) => m.id}
-          renderItem={({ item }) => (
-            <Pressable onPress={() => toggle(item.id)} style={styles.memberRow}>
-              <View style={styles.avatar} />
-              <Text style={{ flex: 1 }}>{item.name}</Text>
-              <View style={[styles.checkbox, selected[item.id] && styles.checkboxOn]} />
-            </Pressable>
-          )}
-          ItemSeparatorComponent={() => <View style={styles.sep} />}
-        />
-      </View>
+      {/* Members section */}
+      <GroupedSection>
+        <ListItem variant="row" title="Members" />
+        {members.map((m) => (
+          <ListItem
+            key={m.id}
+            variant="row"
+            left={<View style={styles.avatar} />}
+            title={m.name}
+            onPress={() => toggle(m.id)}
+            right={selected[m.id] ? <IconSymbol name="checkmark" color={t.colors.tint} size={18} /> : undefined}
+            accessibilityLabel={`Toggle ${m.name}`}
+            accessibilityRole="button"
+          />
+        ))}
+      </GroupedSection>
 
-      <View style={{ padding: 16 }}>
-        <Pressable onPress={onCreate} style={styles.primaryBtn}>
-          <Text style={styles.primaryText}>Create</Text>
-        </Pressable>
-      </View>
-    </View>
+      {/* Create button */}
+      {(() => {
+        const selectedCount = Object.values(selected).filter(Boolean).length;
+        const canCreate = selectedCount > 0;
+        return (
+          <Button
+            title="Create"
+            onPress={onCreate}
+            disabled={!canCreate}
+            accessibilityLabel="Create group"
+            style={{ marginHorizontal: t.spacing.l, marginTop: t.spacing.l, marginBottom: t.spacing.xl }}
+          />
+        );
+      })()}
+    </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: 'white',
-    padding: 16,
-    margin: 16,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-  },
-  label: { fontWeight: '600', marginBottom: 8 },
-  input: {
-    backgroundColor: '#f3f4f6',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  memberRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
-  avatar: { width: 28, height: 28, borderRadius: 7, backgroundColor: '#e5e7eb', marginRight: 10 },
-  checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: '#d1d5db' },
-  checkboxOn: { backgroundColor: '#007aff', borderColor: '#007aff' },
-  sep: { height: StyleSheet.hairlineWidth, backgroundColor: '#e5e7eb' },
-  primaryBtn: { backgroundColor: '#007aff', paddingVertical: 12, borderRadius: 12, alignItems: 'center' },
-  primaryText: { color: 'white', fontWeight: '600' },
-});
+function makeStyles(t: Tokens) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.colors.background },
+    inputRow: {
+      paddingHorizontal: 0,
+      paddingVertical: 0,
+      fontSize: 17,
+      color: t.colors.label,
+      minWidth: 160,
+    },
+    avatar: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      backgroundColor: t.colors.fill,
+      marginRight: 10,
+    },
+  });
+}
