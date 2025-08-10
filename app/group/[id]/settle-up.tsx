@@ -4,7 +4,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { useStore, selectGroup, selectGroupMemberBalances, selectCurrencyForGroup, computeSettlementSuggestions, selectEffectiveLocale } from '@/store/store';
 import { useTheme } from '@/hooks/useTheme';
 import type { Tokens } from '@/theme/tokens';
-import { Card } from '@/components/ui/Card';
+import { GroupedSection } from '@/components/ui/GroupedSection';
 import { ListItem } from '@/components/ui/ListItem';
 import { Button } from '@/components/ui/Button';
 import { formatCurrency } from '@/utils/currency';
@@ -48,35 +48,42 @@ export default function SettleUpScreen() {
 
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic" style={styles.container}>
-      <Card style={styles.card}>
+      <View style={styles.sectionHeaderContainer}>
         <Text style={styles.sectionTitle}>Balances</Text>
+      </View>
+      <GroupedSection>
         {orderedMembers.map((mId) => {
           const bal = balances[mId] ?? 0;
           return (
             <ListItem
               key={mId}
+              variant="row"
               title={nameFor(mId)}
               right={<Text style={[styles.rowAmount, bal < 0 ? styles.neg : bal > 0 ? styles.pos : styles.muted]}>{formatCurrency(Math.abs(bal), { currency, locale: effectiveLocale })}{bal < 0 ? ' owed' : bal > 0 ? ' due' : ''}</Text>}
               accessibilityLabel={`${nameFor(mId)} balance ${formatCurrency(Math.abs(bal), { currency, locale: effectiveLocale })}`}
-              style={{ paddingVertical: 10 }}
             />
           );
         })}
-      </Card>
+      </GroupedSection>
 
-      <Card style={styles.card}>
+      <View style={styles.sectionHeaderContainer}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <Text style={styles.sectionTitle}>Suggested payments</Text>
           {suggestions.length > 0 && (
             <Text style={styles.helperText}>{suggestions.length} suggestion{suggestions.length > 1 ? 's' : ''}</Text>
           )}
         </View>
-        {suggestions.length === 0 ? (
-          <Text style={styles.muted}>All settled up for now.</Text>
-        ) : (
-          suggestions.map((s, idx) => (
+      </View>
+      {suggestions.length === 0 ? (
+        <Text style={[styles.muted, { marginHorizontal: t.spacing.l }]}>
+          All settled up for now.
+        </Text>
+      ) : (
+        <GroupedSection>
+          {suggestions.map((s, idx) => (
             <ListItem
               key={`${s.fromMemberId}-${s.toMemberId}-${idx}`}
+              variant="row"
               title={`${nameFor(s.fromMemberId)} → ${nameFor(s.toMemberId)}`}
               right={
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -88,12 +95,11 @@ export default function SettleUpScreen() {
                   />
                 </View>
               }
-              style={{ paddingVertical: 10 }}
               accessibilityHint="Records this settlement"
             />
-          ))
-        )}
-      </Card>
+          ))}
+        </GroupedSection>
+      )}
 
       <View style={{ height: 24 }} />
     </ScrollView>
@@ -103,7 +109,7 @@ export default function SettleUpScreen() {
 function makeStyles(t: Tokens) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: t.colors.background, paddingTop: t.spacing.s },
-    card: { marginHorizontal: t.spacing.l, marginBottom: t.spacing.l },
+    sectionHeaderContainer: { marginHorizontal: t.spacing.l, marginTop: t.spacing.l },
     sectionTitle: { ...t.text.title3, color: t.colors.label, marginBottom: t.spacing.s },
     rowTitle: { ...t.text.body, color: t.colors.label },
     rowAmount: { ...t.text.headline, color: t.colors.label },

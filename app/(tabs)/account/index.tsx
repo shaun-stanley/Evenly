@@ -2,6 +2,7 @@ import React from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { ListItem } from '@/components/ui/ListItem';
+import { GroupedSection } from '@/components/ui/GroupedSection';
 import { useStore } from '@/store/store';
 import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
 import { LocalePicker } from '@/components/ui/LocalePicker';
@@ -27,46 +28,53 @@ export default function AccountScreen() {
       <View style={styles.sectionHeaderContainer}>
         <Text style={styles.title}>Preferences</Text>
       </View>
-      <ListItem
-        title="Default currency"
-        subtitle="Used when a group hasn't set a currency"
-        right={<Text style={styles.rightText}>{state.settings.currency}</Text>}
-        showChevron
-        onPress={() => setShowCurrencyPicker(true)}
-        accessibilityLabel={`Default currency ${state.settings.currency}`}
-        accessibilityHint="Opens currency picker"
-      />
-      <ListItem
-        title="Locale"
-        subtitle="Number, date, and currency formatting"
-        right={<Text style={styles.rightText}>{localeLabel}</Text>}
-        showChevron
-        onPress={() => setShowLocalePicker(true)}
-        accessibilityLabel={`Locale ${localeLabel}`}
-        accessibilityHint="Opens locale picker"
-      />
+      <GroupedSection>
+        <ListItem
+          variant="row"
+          title="Default currency"
+          subtitle="Used when a group hasn't set a currency"
+          right={<Text style={styles.rightText}>{state.settings.currency}</Text>}
+          showChevron
+          onPress={() => setShowCurrencyPicker(true)}
+          accessibilityLabel={`Default currency ${state.settings.currency}`}
+          accessibilityHint="Opens currency picker"
+        />
+        <ListItem
+          variant="row"
+          title="Locale"
+          subtitle="Number, date, and currency formatting"
+          right={<Text style={styles.rightText}>{localeLabel}</Text>}
+          showChevron
+          onPress={() => setShowLocalePicker(true)}
+          accessibilityLabel={`Locale ${localeLabel}`}
+          accessibilityHint="Opens locale picker"
+        />
+      </GroupedSection>
 
       <View style={styles.sectionHeaderContainer}>
         <Text style={styles.title}>Data</Text>
       </View>
-      <ListItem
-        title="Export data"
-        subtitle="Save or share a JSON copy of your data"
-        showChevron
-        onPress={async () => {
-          try {
-            const { uri, shared } = await exportAndShare(state);
-            if (!shared) {
-              Alert.alert('Export complete', `Saved to: ${uri}`);
+      <GroupedSection>
+        <ListItem
+          variant="row"
+          title="Export data"
+          subtitle="Save or share a JSON copy of your data"
+          showChevron
+          onPress={async () => {
+            try {
+              const { uri, shared } = await exportAndShare(state);
+              if (!shared) {
+                Alert.alert('Export complete', `Saved to: ${uri}`);
+              }
+            } catch (e) {
+              console.error('Export failed', e);
+              Alert.alert('Export failed', 'Unable to export at this time.');
             }
-          } catch (e) {
-            console.error('Export failed', e);
-            Alert.alert('Export failed', 'Unable to export at this time.');
-          }
-        }}
-        accessibilityLabel="Export data"
-        accessibilityHint="Creates a JSON export and opens the share sheet"
-      />
+          }}
+          accessibilityLabel="Export data"
+          accessibilityHint="Creates a JSON export and opens the share sheet"
+        />
+      </GroupedSection>
       <CurrencyPicker
         visible={showCurrencyPicker}
         selectedCode={state.settings.currency}

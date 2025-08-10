@@ -5,10 +5,8 @@ import { Platform, useColorScheme } from 'react-native';
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
-import { useTheme } from '@/hooks/useTheme';
 
 export default function TabLayout() {
-  const t = useTheme();
   const scheme = useColorScheme();
   const isDark = scheme === 'dark';
   const navColors = isDark ? { tint: '#0a84ff' } : { tint: '#007aff' };

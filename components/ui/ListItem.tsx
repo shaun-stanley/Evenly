@@ -16,6 +16,7 @@ export type ListItemProps = {
   testID?: string;
   enableHaptics?: boolean;
   inset?: boolean; // controls outer margins when pressable
+  variant?: 'card' | 'row'; // visual style
   accessibilityLabel?: string;
   accessibilityHint?: string;
   accessibilityRole?: AccessibilityRole;
@@ -33,6 +34,7 @@ export function ListItem({
   testID,
   enableHaptics = true,
   inset = true,
+  variant = 'card',
   accessibilityLabel,
   accessibilityHint,
   accessibilityRole,
@@ -41,7 +43,13 @@ export function ListItem({
   const styles = React.useMemo(() => makeStyles(t), [t]);
 
   const Content = (
-    <View style={[styles.container, style]}>
+    <View
+      style={[
+        styles.containerBase,
+        variant === 'card' ? styles.containerCard : styles.containerRow,
+        style,
+      ]}
+    >
       {left ? <View style={styles.left}>{left}</View> : null}
       <View style={styles.center}>
         {typeof title === 'string' ? (
@@ -85,7 +93,11 @@ export function ListItem({
           }
           onPress();
         }}
-        style={({ pressed }) => [styles.pressable, !inset && { marginHorizontal: 0, marginTop: 0 }, pressed && { opacity: 0.6 }]}
+        style={({ pressed }) => [
+          variant === 'card' && styles.pressable,
+          variant === 'card' && !inset && { marginHorizontal: 0, marginTop: 0 },
+          pressed && { opacity: 0.6 },
+        ]}
       >
         {Content}
       </Pressable>
@@ -101,18 +113,23 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
       marginHorizontal: t.spacing.l,
       marginTop: t.spacing.m,
     },
-    container: {
+    containerBase: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: t.colors.card,
       paddingHorizontal: t.spacing.l,
       paddingVertical: t.spacing.m,
       minHeight: 44,
+    },
+    containerCard: {
+      backgroundColor: t.colors.card,
       borderRadius: t.radius.md,
       shadowColor: t.shadows.card.color,
       shadowOffset: t.shadows.card.offset,
       shadowOpacity: t.shadows.card.opacity,
       shadowRadius: t.shadows.card.radius,
+    },
+    containerRow: {
+      backgroundColor: 'transparent',
     },
     left: { marginRight: t.spacing.m },
     center: { flex: 1 },

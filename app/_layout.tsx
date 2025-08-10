@@ -3,10 +3,9 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-import 'react-native-gesture-handler';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-import { AppThemeProvider, useThemeTokens } from '@/theme/AppThemeProvider';
+import { AppThemeProvider } from '@/theme/AppThemeProvider';
 import { StoreProvider } from '@/store/store';
 
 export default function RootLayout() {
@@ -31,8 +30,6 @@ export default function RootLayout() {
 }
 
 function RootNavigator() {
-  // Access tokens if we need to set global screenOptions later
-  const t = useThemeTokens();
   return (
     <>
       <Stack screenOptions={{ headerShown: false }}>

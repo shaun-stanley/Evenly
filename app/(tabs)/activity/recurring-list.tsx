@@ -1,5 +1,5 @@
 import React, { useLayoutEffect } from 'react';
-import { ActionSheetIOS, FlatList, Platform, Pressable, Text, View, Alert, Switch } from 'react-native';
+import { ActionSheetIOS, Platform, Pressable, Text, View, Alert, Switch, ScrollView } from 'react-native';
 import { useNavigation, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
@@ -12,6 +12,7 @@ import { formatCurrency } from '@/utils/currency';
 import { colorForActivity } from '@/utils/iconColors';
 import { Swipeable } from 'react-native-gesture-handler';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { GroupedSection } from '@/components/ui/GroupedSection';
 
 export default function RecurringListScreen() {
   const { state, toggleRecurringActive, deleteRecurring } = useStore();
@@ -119,35 +120,42 @@ export default function RecurringListScreen() {
   };
 
   return (
-    <FlatList
-      data={data}
-      keyExtractor={(item) => item.id}
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ paddingBottom: t.spacing.xxl, paddingTop: t.spacing.m }}
-      renderItem={({ item }) => (
-        <Swipeable renderRightActions={() => renderRightActions(item.id)} overshootRight={false}>
-          <ListItem
-            left={<AvatarIcon name="arrow.triangle.2.circlepath" bgColor={colorForActivity('recurring_added')} size={18} containerSize={36} />}
-            title={item.description}
-            subtitle={`${formatCurrency(item.amount, { currency: selectCurrencyForGroup(state, item.groupId), locale: effectiveLocale })} • ${ruleLabel(item.rule.interval, item.rule.frequency)} • Next ${new Date(item.nextOccurrenceAt).toLocaleDateString(effectiveLocale)} ${item.active ? '' : '• Paused'}`}
-            right={
-              <Switch
-                value={item.active}
-                onValueChange={(v) => {
-                  toggleRecurringActive(item.id, v);
-                  Haptics.selectionAsync().catch(() => {});
-                }}
-                trackColor={{ false: t.colors.separator, true: t.colors.tint }}
+    <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingBottom: t.spacing.xxl }}>
+      <View style={{ marginHorizontal: t.spacing.l, marginTop: t.spacing.m }}>
+        <Text style={{ ...t.text.title3, color: t.colors.label }}>Recurring</Text>
+      </View>
+      {data.length === 0 ? (
+        <Text style={{ ...t.text.subheadline, color: t.colors.secondaryLabel, marginHorizontal: t.spacing.l, marginTop: t.spacing.s }}>
+          No recurring expenses yet.
+        </Text>
+      ) : (
+        <GroupedSection>
+          {data.map((item) => (
+            <Swipeable key={item.id} renderRightActions={() => renderRightActions(item.id)} overshootRight={false}>
+              <ListItem
+                variant="row"
+                left={<AvatarIcon name="arrow.triangle.2.circlepath" bgColor={colorForActivity('recurring_added')} size={18} containerSize={36} />}
+                title={item.description}
+                subtitle={`${formatCurrency(item.amount, { currency: selectCurrencyForGroup(state, item.groupId), locale: effectiveLocale })} • ${ruleLabel(item.rule.interval, item.rule.frequency)} • Next ${new Date(item.nextOccurrenceAt).toLocaleDateString(effectiveLocale)} ${item.active ? '' : '• Paused'}`}
+                right={
+                  <Switch
+                    value={item.active}
+                    onValueChange={(v) => {
+                      toggleRecurringActive(item.id, v);
+                      Haptics.selectionAsync().catch(() => {});
+                    }}
+                    trackColor={{ false: t.colors.separator, true: t.colors.tint }}
+                  />
+                }
+                onPress={() => onRowPress(item.id)}
+                accessibilityLabel={`${item.description}, ${formatCurrency(item.amount, { currency: selectCurrencyForGroup(state, item.groupId), locale: effectiveLocale })}, ${ruleLabel(item.rule.interval, item.rule.frequency)}`}
+                accessibilityHint="Double tap to open actions"
               />
-            }
-            onPress={() => onRowPress(item.id)}
-            accessibilityLabel={`${item.description}, ${formatCurrency(item.amount, { currency: selectCurrencyForGroup(state, item.groupId), locale: effectiveLocale })}, ${ruleLabel(item.rule.interval, item.rule.frequency)}`}
-            accessibilityHint="Double tap to open actions"
-          />
-        </Swipeable>
+            </Swipeable>
+          ))}
+        </GroupedSection>
       )}
-      ListEmptyComponent={<View style={{ height: 1 }} />}
-      ListFooterComponent={<View style={{ height: t.spacing.xxl }} />}
-    />
+      <View style={{ height: t.spacing.xxl }} />
+    </ScrollView>
   );
 }

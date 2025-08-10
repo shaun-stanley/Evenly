@@ -6,13 +6,12 @@ import * as Haptics from 'expo-haptics';
 import { useStore, selectGroupsArray, selectCurrencyForGroup, selectEffectiveLocale } from '@/store/store';
 import type { RecurrenceFrequency } from '@/store/types';
 import { useTheme } from '@/hooks/useTheme';
-import { FormField } from '@/components/ui/FormField';
 import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
 import { ListItem } from '@/components/ui/ListItem';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { centsFromText, textFromCents, formatCurrency } from '@/utils/currency';
+import { GroupedSection } from '@/components/ui/GroupedSection';
 
 export default function NewRecurringScreen() {
   const { state, addRecurring } = useStore();
@@ -97,107 +96,125 @@ export default function NewRecurringScreen() {
   return (
     <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', default: undefined })} style={{ flex: 1, backgroundColor: t.colors.background }}>
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingBottom: t.spacing.xxl }}>
-        <Card style={{ marginHorizontal: t.spacing.l, marginTop: t.spacing.l }}>
+        {/* Details section */}
+        <View style={{ marginHorizontal: t.spacing.l, marginTop: t.spacing.l }}>
+          <Text style={{ ...t.text.footnote, color: t.colors.secondaryLabel, fontWeight: '700' }}>DETAILS</Text>
+        </View>
+        <GroupedSection>
           <ListItem
+            variant="row"
             title="Group"
             right={<Text style={{ color: t.colors.secondaryLabel }}>{state.groups[groupId!]?.name}</Text>}
             showChevron
-            inset={false}
             onPress={onPickGroup}
             accessibilityLabel="Choose group"
           />
-          <FormField label="Description">
-            <TextInput
-              value={description}
-              onChangeText={setDescription}
-              placeholder="e.g. Rent"
-              autoCapitalize="sentences"
-              autoCorrect
-              returnKeyType="next"
-              style={{
-                backgroundColor: t.colors.card,
-                borderRadius: t.radius.md,
-                paddingHorizontal: t.spacing.m,
-                paddingVertical: t.spacing.m,
-                color: t.colors.label,
-                borderWidth: 1,
-                borderColor: t.colors.separator,
-              }}
-            />
-          </FormField>
-          <FormField
-            label="Amount"
-            helper={(() => {
-              const v = amountCents / 100;
-              if (!isNaN(v) && v > 0) return <Text style={{ color: t.colors.secondaryLabel }}>Will create {formatCurrency(v, { currency, locale: effectiveLocale })} on schedule</Text>;
-              return null;
-            })()}
-          >
-            <TextInput
-              value={textFromCents(amountCents)}
-              onChangeText={(tx) => setAmountCents(centsFromText(tx))}
-              placeholder="0.00"
-              keyboardType="number-pad"
-              returnKeyType="done"
-              style={{
-                backgroundColor: t.colors.card,
-                borderRadius: t.radius.md,
-                paddingHorizontal: t.spacing.m,
-                paddingVertical: t.spacing.m,
-                color: t.colors.label,
-                borderWidth: 1,
-                borderColor: t.colors.separator,
-              }}
-            />
-          </FormField>
-        </Card>
+          <ListItem
+            variant="row"
+            title="Description"
+            right={
+              <TextInput
+                value={description}
+                onChangeText={setDescription}
+                placeholder="e.g. Rent"
+                autoCapitalize="sentences"
+                autoCorrect
+                returnKeyType="next"
+                placeholderTextColor={t.colors.secondaryLabel}
+                style={{
+                  color: t.colors.label,
+                  textAlign: 'right',
+                  minWidth: 140,
+                  paddingVertical: 0,
+                }}
+              />
+            }
+          />
+          <ListItem
+            variant="row"
+            title="Amount"
+            right={
+              <TextInput
+                value={textFromCents(amountCents)}
+                onChangeText={(tx) => setAmountCents(centsFromText(tx))}
+                placeholder="0.00"
+                keyboardType="number-pad"
+                returnKeyType="done"
+                placeholderTextColor={t.colors.secondaryLabel}
+                style={{
+                  color: t.colors.label,
+                  textAlign: 'right',
+                  minWidth: 100,
+                  paddingVertical: 0,
+                }}
+              />
+            }
+          />
+        </GroupedSection>
+        {(() => {
+          const v = amountCents / 100;
+          if (!isNaN(v) && v > 0)
+            return (
+              <Text style={{ color: t.colors.secondaryLabel, marginHorizontal: t.spacing.l, marginTop: t.spacing.s }}>
+                Will create {formatCurrency(v, { currency, locale: effectiveLocale })} on schedule
+              </Text>
+            );
+          return null;
+        })()}
 
-        <Card style={{ marginHorizontal: t.spacing.l, marginTop: t.spacing.m, marginBottom: t.spacing.xxl }}>
-          <Text style={{ ...t.text.footnote, color: t.colors.secondaryLabel, fontWeight: '700', marginBottom: t.spacing.s }}>FREQUENCY</Text>
-          <View style={{ flexDirection: 'row', gap: t.spacing.s }}>
-            {(['daily', 'weekly', 'monthly', 'yearly'] as RecurrenceFrequency[]).map((f) => {
-              const selected = f === frequency;
-              return (
-                <Pressable
-                  key={f}
-                  onPress={() => setFrequency(f)}
-                  style={({ pressed }) => [
-                    {
-                      backgroundColor: selected ? t.colors.tint : t.colors.card,
-                      paddingHorizontal: t.spacing.m,
-                      paddingVertical: t.spacing.s,
-                      borderRadius: t.radius.md,
-                      shadowColor: t.shadows.card.color,
-                      shadowOffset: t.shadows.card.offset,
-                      shadowOpacity: t.shadows.card.opacity,
-                      shadowRadius: t.shadows.card.radius,
-                    },
-                    pressed && { opacity: 0.85 },
-                  ]}
-                >
-                  <Text style={{ ...t.text.subheadline, color: selected ? '#fff' : t.colors.label, fontWeight: '600' }}>{f[0].toUpperCase() + f.slice(1)}</Text>
-                </Pressable>
-              );
-            })}
+        {/* Frequency section */}
+        <View style={{ marginHorizontal: t.spacing.l, marginTop: t.spacing.l }}>
+          <Text style={{ ...t.text.footnote, color: t.colors.secondaryLabel, fontWeight: '700' }}>FREQUENCY</Text>
+        </View>
+        <GroupedSection>
+          <View style={{ paddingHorizontal: t.spacing.l, paddingVertical: t.spacing.m }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: t.spacing.s }}>
+              {(['daily', 'weekly', 'monthly', 'yearly'] as RecurrenceFrequency[]).map((f) => {
+                const selected = f === frequency;
+                return (
+                  <Pressable
+                    key={f}
+                    onPress={() => setFrequency(f)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Frequency ${f}`}
+                    style={({ pressed }) => [
+                      {
+                        backgroundColor: selected ? t.colors.tint : t.colors.card,
+                        paddingHorizontal: t.spacing.m,
+                        paddingVertical: t.spacing.s,
+                        borderRadius: t.radius.md,
+                        shadowColor: t.shadows.card.color,
+                        shadowOffset: t.shadows.card.offset,
+                        shadowOpacity: t.shadows.card.opacity,
+                        shadowRadius: t.shadows.card.radius,
+                      },
+                      pressed && { opacity: 0.85 },
+                    ]}
+                  >
+                    <Text style={{ ...t.text.subheadline, color: selected ? '#fff' : t.colors.label, fontWeight: '600' }}>
+                      {f[0].toUpperCase() + f.slice(1)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
-          <FormField label="Every" helper={`Applies every ${interval || '1'} ${frequency}${(parseInt(interval || '1', 10) || 1) > 1 ? 's' : ''}.`}>
-            <TextInput
-              value={interval}
-              onChangeText={(tx) => setInterval(tx.replace(/\D/g, ''))}
-              placeholder="1"
-              keyboardType="number-pad"
-              style={{
-                backgroundColor: t.colors.card,
-                borderRadius: t.radius.md,
-                paddingHorizontal: t.spacing.m,
-                paddingVertical: t.spacing.m,
-                color: t.colors.label,
-                borderWidth: 1,
-                borderColor: t.colors.separator,
-              }}
-            />
-          </FormField>
-        </Card>
+          <ListItem
+            variant="row"
+            title="Every"
+            right={
+              <TextInput
+                value={interval}
+                onChangeText={(tx) => setInterval(tx.replace(/\D/g, ''))}
+                placeholder="1"
+                keyboardType="number-pad"
+                placeholderTextColor={t.colors.secondaryLabel}
+                style={{ color: t.colors.label, textAlign: 'right', minWidth: 60, paddingVertical: 0 }}
+              />
+            }
+            accessibilityHint={`Applies every ${interval || '1'} ${frequency}${(parseInt(interval || '1', 10) || 1) > 1 ? 's' : ''}.`}
+          />
+        </GroupedSection>
 
         {/* Primary save action */}
         <View style={{ marginHorizontal: t.spacing.l }}>

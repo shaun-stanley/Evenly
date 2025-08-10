@@ -10,6 +10,7 @@ import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
 import { useTheme } from '@/hooks/useTheme';
 import type { Tokens } from '@/theme/tokens';
 import { Card } from '@/components/ui/Card';
+import { GroupedSection } from '@/components/ui/GroupedSection';
 import { ListItem } from '@/components/ui/ListItem';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatCurrency } from '@/utils/currency';
@@ -224,9 +225,12 @@ export default function GroupDetailScreen() {
         )}
       </Card>
 
-      <Card style={styles.card}>
+      <View style={styles.sectionHeaderContainer}>
         <Text style={styles.sectionTitle}>Group</Text>
+      </View>
+      <GroupedSection>
         <ListItem
+          variant="row"
           title={"Currency"}
           subtitle={"Applies only to this group"}
           right={
@@ -239,7 +243,7 @@ export default function GroupDetailScreen() {
           accessibilityLabel={`Currency ${group?.currency ? group.currency : `Default (${state.settings.currency})`}`}
           accessibilityHint="Opens currency picker"
         />
-      </Card>
+      </GroupedSection>
 
       <CurrencyPicker
         visible={showCurrencyPicker}
@@ -253,14 +257,17 @@ export default function GroupDetailScreen() {
         title="Currency"
       />
 
-      <Card style={styles.card}>
+      <View style={styles.sectionHeaderContainer}>
         <Text style={styles.sectionTitle}>Expenses</Text>
-        {expenses.length === 0 ? (
-          <EmptyState icon="tray" message="No expenses yet." />
-        ) : (
-          expenses.map((e) => (
+      </View>
+      {expenses.length === 0 ? (
+        <EmptyState icon="tray" message="No expenses yet." />
+      ) : (
+        <GroupedSection>
+          {expenses.map((e) => (
             <Swipeable key={e.id} renderRightActions={() => renderRightActions(e.id)} overshootRight={false}>
               <ListItem
+                variant="row"
                 title={e.description}
                 subtitle={`Paid by ${state.members[e.paidBy]?.name ?? 'Someone'}`}
                 right={
@@ -285,9 +292,9 @@ export default function GroupDetailScreen() {
                 onPress={() => onExpensePress(e.id)}
               />
             </Swipeable>
-          ))
-        )}
-      </Card>
+          ))}
+        </GroupedSection>
+      )}
     </ScrollView>
   );
 }
@@ -311,6 +318,7 @@ function makeStyles(t: Tokens) {
     name: { ...t.text.title2, color: t.colors.label },
     meta: { ...t.text.subheadline, color: t.colors.secondaryLabel, marginTop: t.spacing.xs },
     card: { marginHorizontal: t.spacing.l, marginBottom: t.spacing.l },
+    sectionHeaderContainer: { marginHorizontal: t.spacing.l, marginTop: t.spacing.l },
     sectionTitle: { ...t.text.title3, color: t.colors.label, marginBottom: t.spacing.s },
     muted: { ...t.text.subheadline, color: t.colors.secondaryLabel },
     amountNeg: { ...t.text.headline, color: t.colors.danger },
