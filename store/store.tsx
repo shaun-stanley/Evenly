@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useReducer, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Action, ActivityItem, AddExpensePayload, Expense, Group, ID, State, EditExpensePayload, AddRecurringPayload, EditRecurringPayload, RecurringExpense, RecurrenceRule } from './types';
+import type { Action, ActivityItem, AddExpensePayload, Expense, Group, ID, State, EditExpensePayload, AddRecurringPayload, EditRecurringPayload, RecurringExpense, RecurrenceRule, AddSettlementPayload, Settlement, AddCommentPayload } from './types';
 import { formatCurrency } from '@/utils/currency';
 import { deleteAttachmentsForExpense } from '@/utils/attachments';
 
@@ -9,6 +9,30 @@ const OLD_STORAGE_KEY = '@splitwise_ios_state_v1';
 
 function genId(prefix: string = 'id'): ID {
   return `${prefix}_${Math.random().toString(36).slice(2, 8)}_${Date.now().toString(36)}`;
+}
+
+// Suggest settlement payments to minimize transactions given current balances.
+export function computeSettlementSuggestions(state: State, groupId: ID): { fromMemberId: ID; toMemberId: ID; amount: number }[] {
+  const balances = selectGroupMemberBalances(state, groupId);
+  const debtors: { id: ID; amt: number }[] = [];
+  const creditors: { id: ID; amt: number }[] = [];
+  for (const [id, bal] of Object.entries(balances)) {
+    if (bal < -0.005) debtors.push({ id, amt: -bal }); // owes amt
+    else if (bal > 0.005) creditors.push({ id, amt: bal }); // is owed amt
+  }
+  debtors.sort((a, b) => b.amt - a.amt); // largest debtor first
+  creditors.sort((a, b) => b.amt - a.amt); // largest creditor first
+  const suggestions: { fromMemberId: ID; toMemberId: ID; amount: number }[] = [];
+  let i = 0, j = 0;
+  while (i < debtors.length && j < creditors.length) {
+    const pay = Math.min(debtors[i].amt, creditors[j].amt);
+    if (pay > 0.005) suggestions.push({ fromMemberId: debtors[i].id, toMemberId: creditors[j].id, amount: pay });
+    debtors[i].amt -= pay;
+    creditors[j].amt -= pay;
+    if (debtors[i].amt <= 0.005) i++;
+    if (creditors[j].amt <= 0.005) j++;
+  }
+  return suggestions;
 }
 
 export function selectCurrencyForGroup(state: State, groupId: ID | undefined): string {
@@ -49,7 +73,8 @@ const initialState: State = {
   expenses: {},
   activity: [],
   recurring: {},
-  settings: { currency: 'USD' },
+  settlements: {},
+  settings: { currency: 'USD', locale: 'system' },
 };
 
 function reducer(state: State, action: Action): State {
@@ -60,7 +85,8 @@ function reducer(state: State, action: Action): State {
         ...initialState,
         ...action.payload,
         recurring: (action.payload as any).recurring ?? {},
-        settings: (action.payload as any).settings ?? initialState.settings,
+        settlements: (action.payload as any).settlements ?? {},
+        settings: { ...initialState.settings, ...(action.payload as any).settings },
       };
     case 'ADD_GROUP': {
       const id = genId('grp');
@@ -119,11 +145,12 @@ function reducer(state: State, action: Action): State {
         createdAt: Date.now(),
       };
       const currency = state.groups[groupId]?.currency || state.settings.currency;
+      const locale = state.settings.locale && state.settings.locale !== 'system' ? state.settings.locale : undefined;
       const attachmentsCount = (action.payload as any).attachments?.length || undefined;
       const activity: ActivityItem = {
         id: genId('act'),
         type: 'expense_added',
-        message: `Added “${description}” ${formatCurrency(amount, { currency })} in ${state.groups[groupId].name}${(action.payload as any).attachments?.length ? ` · ${(action.payload as any).attachments.length} attachment${(action.payload as any).attachments.length === 1 ? '' : 's'}` : ''}`,
+        message: `Added “${description}” ${formatCurrency(amount, { currency, locale })} in ${state.groups[groupId].name}${(action.payload as any).attachments?.length ? ` · ${(action.payload as any).attachments.length} attachment${(action.payload as any).attachments.length === 1 ? '' : 's'}` : ''}`,
         attachmentsCount,
         createdAt: Date.now(),
       };
@@ -139,11 +166,12 @@ function reducer(state: State, action: Action): State {
       if (!prev) return state;
       const next: Expense = { ...prev, ...updates };
       const currency = state.groups[next.groupId]?.currency || state.settings.currency;
+      const locale = state.settings.locale && state.settings.locale !== 'system' ? state.settings.locale : undefined;
       const attachmentsCount = next.attachments?.length || undefined;
       const activity: ActivityItem = {
         id: genId('act'),
         type: 'expense_edited',
-        message: `Edited “${next.description}” ${formatCurrency(next.amount, { currency })} in ${state.groups[next.groupId]?.name ?? 'group'}${next.attachments?.length ? ` · ${next.attachments.length} attachment${next.attachments.length === 1 ? '' : 's'}` : ''}`,
+        message: `Edited “${next.description}” ${formatCurrency(next.amount, { currency, locale })} in ${state.groups[next.groupId]?.name ?? 'group'}${next.attachments?.length ? ` · ${next.attachments.length} attachment${next.attachments.length === 1 ? '' : 's'}` : ''}`,
         attachmentsCount,
         createdAt: Date.now(),
       };
@@ -188,10 +216,11 @@ function reducer(state: State, action: Action): State {
         createdAt: Date.now(),
       };
       const currency = state.groups[p.groupId]?.currency || state.settings.currency;
+      const locale = state.settings.locale && state.settings.locale !== 'system' ? state.settings.locale : undefined;
       const activity: ActivityItem = {
         id: genId('act'),
         type: 'recurring_added',
-        message: `Added recurring “${rec.description}” ${formatCurrency(rec.amount, { currency })} in ${state.groups[p.groupId].name}`,
+        message: `Added recurring “${rec.description}” ${formatCurrency(rec.amount, { currency, locale })} in ${state.groups[p.groupId].name}`,
         createdAt: Date.now(),
       };
       return {
@@ -210,10 +239,11 @@ function reducer(state: State, action: Action): State {
         nextOccurrenceAt: updates.rule ? computeNextOccurrence(updates.rule, Date.now()) : prev.nextOccurrenceAt,
       };
       const currency = state.groups[next.groupId]?.currency || state.settings.currency;
+      const locale = state.settings.locale && state.settings.locale !== 'system' ? state.settings.locale : undefined;
       const activity: ActivityItem = {
         id: genId('act'),
         type: 'recurring_edited',
-        message: `Edited recurring “${next.description}” ${formatCurrency(next.amount, { currency })} in ${state.groups[next.groupId]?.name ?? 'group'}`,
+        message: `Edited recurring “${next.description}” ${formatCurrency(next.amount, { currency, locale })} in ${state.groups[next.groupId]?.name ?? 'group'}`,
         createdAt: Date.now(),
       };
       return {
@@ -235,6 +265,65 @@ function reducer(state: State, action: Action): State {
       };
       return { ...state, recurring: rest, activity: [activity, ...state.activity] };
     }
+    case 'ADD_SETTLEMENT': {
+      const p = action.payload as AddSettlementPayload;
+      if (!state.groups[p.groupId]) return state;
+      const id = genId('set');
+      const s: Settlement = {
+        id,
+        groupId: p.groupId,
+        fromMemberId: p.fromMemberId,
+        toMemberId: p.toMemberId,
+        amount: p.amount,
+        note: p.note,
+        createdAt: Date.now(),
+      };
+      const g = state.groups[p.groupId];
+      const currency = g?.currency || state.settings.currency;
+      const locale = state.settings.locale && state.settings.locale !== 'system' ? state.settings.locale : undefined;
+      const fromName = state.members[p.fromMemberId]?.name ?? 'Someone';
+      const toName = state.members[p.toMemberId]?.name ?? 'Someone';
+      const activity: ActivityItem = {
+        id: genId('act'),
+        type: 'settlement_recorded',
+        message: `${fromName} paid ${toName} ${formatCurrency(p.amount, { currency, locale })} in ${g?.name ?? 'group'}`,
+        createdAt: Date.now(),
+      };
+      return { ...state, settlements: { ...state.settlements, [id]: s }, activity: [activity, ...state.activity] };
+    }
+    case 'DELETE_SETTLEMENT': {
+      const { id } = action.payload as { id: ID };
+      const prev = state.settlements[id];
+      if (!prev) return state;
+      const { [id]: _omit, ...rest } = state.settlements;
+      return { ...state, settlements: rest };
+    }
+    case 'ADD_COMMENT': {
+      const p = action.payload as AddCommentPayload;
+      const exp = state.expenses[p.expenseId];
+      if (!exp) return state;
+      const comment = {
+        id: genId('cmt'),
+        memberId: state.currentMemberId,
+        text: (p.text || '').trim(),
+        createdAt: Date.now(),
+      };
+      if (!comment.text) return state;
+      const nextExp: Expense = { ...exp, comments: [...(exp.comments ?? []), comment] };
+      const g = state.groups[exp.groupId];
+      const who = state.members[state.currentMemberId]?.name ?? 'Someone';
+      const activity: ActivityItem = {
+        id: genId('act'),
+        type: 'comment_added',
+        message: `${who} commented on “${exp.description}” in ${g?.name ?? 'group'}`,
+        createdAt: Date.now(),
+      };
+      return {
+        ...state,
+        expenses: { ...state.expenses, [exp.id]: nextExp },
+        activity: [activity, ...state.activity],
+      };
+    }
     case 'TOGGLE_RECURRING_ACTIVE': {
       const { id, active } = action.payload as { id: ID; active: boolean };
       const prev = state.recurring[id];
@@ -253,6 +342,10 @@ function reducer(state: State, action: Action): State {
     case 'SET_CURRENCY': {
       const { currency } = action.payload as { currency: string };
       return { ...state, settings: { ...state.settings, currency } };
+    }
+    case 'SET_LOCALE': {
+      const { locale } = action.payload as { locale?: string | 'system' };
+      return { ...state, settings: { ...state.settings, locale: locale ?? 'system' } };
     }
     default:
       return state;
@@ -273,6 +366,10 @@ const StoreContext = createContext<{
   toggleRecurringActive: (id: ID, active: boolean) => void;
   setGroupCurrency: (id: ID, currency?: string) => void;
   setCurrency: (currency: string) => void;
+  setLocale: (locale?: string | 'system') => void;
+  addSettlement: (payload: AddSettlementPayload) => void;
+  deleteSettlement: (id: ID) => void;
+  addComment: (payload: AddCommentPayload) => void;
   hydrated: boolean;
 } | null>(null);
 
@@ -354,7 +451,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const setCurrency = (currency: string) =>
     dispatch({ type: 'SET_CURRENCY', payload: { currency } });
 
-  const value = useMemo(() => ({ state, dispatch, addGroup, addExpense, editExpense, deleteExpense, renameGroup, addRecurring, editRecurring, deleteRecurring, toggleRecurringActive, setGroupCurrency, setCurrency, hydrated }), [state, hydrated]);
+  const setLocale = (locale?: string | 'system') =>
+    dispatch({ type: 'SET_LOCALE', payload: { locale } });
+
+  const addSettlement = (payload: AddSettlementPayload) =>
+    dispatch({ type: 'ADD_SETTLEMENT', payload });
+
+  const deleteSettlement = (id: ID) =>
+    dispatch({ type: 'DELETE_SETTLEMENT', payload: { id } });
+
+  const addComment = (payload: AddCommentPayload) =>
+    dispatch({ type: 'ADD_COMMENT', payload });
+
+  const value = useMemo(() => ({ state, dispatch, addGroup, addExpense, editExpense, deleteExpense, renameGroup, addRecurring, editRecurring, deleteRecurring, toggleRecurringActive, setGroupCurrency, setCurrency, setLocale, addSettlement, deleteSettlement, addComment, hydrated }), [state, hydrated]);
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
 
@@ -399,6 +508,11 @@ export function computeUserTotals(state: State): { owes: number; owed: number } 
       owes += shares[me] ?? 0;
     }
   }
+  // apply settlements across all groups
+  for (const s of Object.values((state as any).settlements || {}) as Settlement[]) {
+    if (s.fromMemberId === me) owes = Math.max(0, owes - s.amount);
+    if (s.toMemberId === me) owed = Math.max(0, owed - s.amount);
+  }
   return { owes, owed };
 }
 
@@ -417,6 +531,12 @@ export function selectGroupMemberBalances(state: State, groupId: ID): Record<ID,
     // payer gets full amount
     result[exp.paidBy] = (result[exp.paidBy] ?? 0) + exp.amount;
   }
+  // apply settlements: fromMember balance increases by amount, toMember decreases by amount
+  const settlements = (Object.values((state as any).settlements || {}) as Settlement[]).filter((s) => s.groupId === groupId);
+  for (const s of settlements) {
+    if (result[s.fromMemberId] != null) result[s.fromMemberId] += s.amount;
+    if (result[s.toMemberId] != null) result[s.toMemberId] -= s.amount;
+  }
   return result;
 }
 
@@ -425,6 +545,12 @@ export function computeGroupTotalsForUserInGroup(state: State, groupId: ID): { o
   const me = state.currentMemberId;
   const net = balances[me] ?? 0;
   return { owes: net < 0 ? -net : 0, owed: net > 0 ? net : 0 };
+}
+
+// Locale selector: returns undefined when following system locale
+export function selectEffectiveLocale(state: State): string | undefined {
+  const l = (state as any).settings?.locale as string | 'system' | undefined;
+  return l && l !== 'system' ? l : undefined;
 }
 
 // Helper: compute per-member shares in currency units based on split type and shares

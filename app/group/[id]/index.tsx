@@ -14,6 +14,7 @@ import { ListItem } from '@/components/ui/ListItem';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { formatCurrency } from '@/utils/currency';
 import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
+import { Button } from '@/components/ui/Button';
 
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -195,7 +196,17 @@ export default function GroupDetailScreen() {
       </View>
 
       <Card style={styles.card}>
-        <Text style={styles.sectionTitle}>Your balance in this group</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Text style={styles.sectionTitle}>Your balance in this group</Text>
+          {(groupTotals.owes > 0 || groupTotals.owed > 0) && (
+            <Button
+              title="Settle Up"
+              icon="checkmark.circle"
+              accessibilityLabel="Settle up"
+              onPress={() => router.push(`/group/${id}/settle-up`)}
+            />
+          )}
+        </View>
         {groupTotals.owes === 0 && groupTotals.owed === 0 ? (
           <Text style={styles.muted}>All settled up.</Text>
         ) : (
@@ -257,6 +268,12 @@ export default function GroupDetailScreen() {
                       <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
                         <IconSymbol name="paperclip" color={t.colors.secondaryLabel} size={16} />
                         <Text style={styles.attachCount}>{e.attachments.length}</Text>
+                      </View>
+                    ) : null}
+                    {e.comments && e.comments.length > 0 ? (
+                      <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
+                        <IconSymbol name="text.bubble" color={t.colors.secondaryLabel} size={16} />
+                        <Text style={styles.attachCount}>{e.comments.length}</Text>
                       </View>
                     ) : null}
                     <Text style={styles.expenseAmount}>{formatCurrency(e.amount, { currency: selectCurrencyForGroup(state, e.groupId) })}</Text>

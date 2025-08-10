@@ -1,5 +1,5 @@
 import React, { useLayoutEffect } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useStore } from '@/store/store';
 import { useTheme } from '@/hooks/useTheme';
 import { ListItem } from '@/components/ui/ListItem';
@@ -66,17 +66,90 @@ export default function ActivityScreen() {
       case 'recurring_edited':
       case 'recurring_deleted':
         return 'arrow.triangle.2.circlepath' as const;
+      case 'settlement_recorded':
+        return 'checkmark.circle' as const;
+      case 'comment_added':
+        return 'text.bubble' as const;
       default:
         return 'clock' as const;
     }
   };
 
+  const [query, setQuery] = React.useState('');
+  const [filter, setFilter] = React.useState<'all' | 'expenses' | 'recurring' | 'groups' | 'settlements' | 'comments'>('all');
+
+  const matchesFilter = (type: string) => {
+    if (filter === 'all') return true;
+    if (filter === 'expenses') return type === 'expense_added' || type === 'expense_edited' || type === 'expense_deleted';
+    if (filter === 'recurring') return type === 'recurring_added' || type === 'recurring_edited' || type === 'recurring_deleted';
+    if (filter === 'groups') return type === 'group_created' || type === 'group_renamed';
+    if (filter === 'settlements') return type === 'settlement_recorded';
+    if (filter === 'comments') return type === 'comment_added';
+    return true;
+  };
+
+  const filtered = React.useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return state.activity.filter((a) => matchesFilter(a.type) && (q.length === 0 || a.message.toLowerCase().includes(q)));
+  }, [state.activity, query, filter]);
+
   return (
     <FlatList
-      data={state.activity}
+      data={filtered}
       keyExtractor={(item) => item.id}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={{ paddingBottom: 24, paddingTop: 12 }}
+      ListHeaderComponent={
+        <View style={{ paddingHorizontal: 16, marginBottom: 4 }}>
+          <View
+            style={{
+              backgroundColor: t.colors.card,
+              borderRadius: 12,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              shadowColor: t.shadows.card.color,
+              shadowOffset: t.shadows.card.offset,
+              shadowOpacity: t.shadows.card.opacity,
+              shadowRadius: t.shadows.card.radius,
+            }}
+          >
+            <TextInput
+              placeholder="Search activity"
+              placeholderTextColor={t.colors.secondaryLabel}
+              value={query}
+              onChangeText={setQuery}
+              style={{ color: t.colors.label, fontSize: 16, paddingVertical: 6 }}
+              accessibilityLabel="Search activity"
+              returnKeyType="search"
+              clearButtonMode="while-editing"
+            />
+          </View>
+          <View
+            accessibilityRole="tablist"
+            style={{ marginTop: 12, flexDirection: 'row', backgroundColor: t.colors.card, borderRadius: 10, padding: 4 }}
+          >
+            {(['all', 'expenses', 'recurring', 'groups', 'settlements', 'comments'] as const).map((f) => (
+              <Text
+                key={f}
+                onPress={() => setFilter(f)}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: filter === f }}
+                style={{
+                  flex: 1,
+                  textAlign: 'center',
+                  paddingVertical: 8,
+                  borderRadius: 8,
+                  color: filter === f ? 'white' : t.colors.label,
+                  backgroundColor: filter === f ? t.colors.tint : 'transparent',
+                  fontWeight: filter === f ? '600' : '400',
+                }}
+              >
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+              </Text>
+            ))}
+          </View>
+        </View>
+      }
       renderItem={({ item }) => {
         const showAttach = (item.type === 'expense_added' || item.type === 'expense_edited') && (item as any).attachmentsCount > 0;
         return (
@@ -110,12 +183,17 @@ export default function ActivityScreen() {
             style={{ marginHorizontal: 16, marginTop: 12 }}
             accessibilityLabel={item.message}
             accessibilityHint="Activity item"
+            onPress={() => router.push({ pathname: '/(tabs)/activity/detail', params: { id: item.id } } as never)}
           />
         );
       }}
       ListEmptyComponent={
         <View style={{ padding: 16 }}>
-          <EmptyState icon="clock" title="No activity yet" message="Your recent activity will appear here as you add expenses and make changes." />
+          {state.activity.length === 0 ? (
+            <EmptyState icon="clock" title="No activity yet" message="Your recent activity will appear here as you add expenses and make changes." />
+          ) : (
+            <EmptyState icon="magnifyingglass" title="No results" message={query || filter !== 'all' ? 'Try adjusting your search or filters.' : 'No matching items.'} />
+          )}
         </View>
       }
       ListFooterComponent={<View style={{ height: 24 }} />}

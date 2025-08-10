@@ -17,7 +17,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 export default function EditExpenseScreen() {
   const { id, expenseId } = useLocalSearchParams<{ id: string; expenseId: string }>();
   const router = useRouter();
-  const { state, editExpense } = useStore();
+  const { state, editExpense, addComment } = useStore();
   const t = useTheme();
   const styles = React.useMemo(() => makeStyles(t), [t]);
 
@@ -29,6 +29,7 @@ export default function EditExpenseScreen() {
   const amountRef = React.useRef<TextInput>(null);
   const [attachments, setAttachments] = React.useState<Attachment[]>(expense?.attachments ?? []);
   const [viewerIndex, setViewerIndex] = React.useState<number | null>(null);
+  const [newComment, setNewComment] = React.useState('');
 
   // Split state
   const [splitType, setSplitType] = React.useState<'equal' | 'amount' | 'percent'>(expense?.splitType ?? 'equal');
@@ -394,6 +395,80 @@ export default function EditExpenseScreen() {
             returnKeyType="done"
             clearButtonMode="while-editing"
           />
+        </FormField>
+
+        <FormField label={`Comments${expense?.comments?.length ? ` (${expense.comments.length})` : ''}`} helper="Discuss this expense">
+          <View style={{ gap: 12 }}>
+            {expense?.comments && expense.comments.length > 0 ? (
+              <View style={{ gap: 8 }}>
+                {expense.comments.map((c) => (
+                  <View
+                    key={c.id}
+                    style={{
+                      backgroundColor: t.colors.card,
+                      borderRadius: t.radius.md,
+                      padding: 10,
+                      shadowColor: t.shadows.card.color,
+                      shadowOffset: t.shadows.card.offset,
+                      shadowOpacity: t.shadows.card.opacity,
+                      shadowRadius: t.shadows.card.radius,
+                    }}
+                    accessible
+                    accessibilityLabel={`Comment by ${state.members[c.memberId]?.name ?? 'member'}`}
+                  >
+                    <Text style={{ color: t.colors.label, fontWeight: '600' }}>
+                      {state.members[c.memberId]?.name ?? 'Member'}
+                    </Text>
+                    <Text style={{ color: t.colors.label, marginTop: 4 }}>{c.text}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Text style={{ color: t.colors.secondaryLabel }}>No comments yet.</Text>
+            )}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <TextInput
+                placeholder="Add a comment"
+                placeholderTextColor={t.colors.secondaryLabel}
+                value={newComment}
+                onChangeText={setNewComment}
+                style={[styles.input, { flex: 1 }]}
+                accessibilityLabel="New comment"
+                returnKeyType="send"
+                onSubmitEditing={() => {
+                  const text = newComment.trim();
+                  if (!text || !expense) return;
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                  addComment({ expenseId: expense.id, text });
+                  setNewComment('');
+                }}
+                clearButtonMode="while-editing"
+              />
+              <Pressable
+                onPress={() => {
+                  const text = newComment.trim();
+                  if (!text || !expense) return;
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+                  addComment({ expenseId: expense.id, text });
+                  setNewComment('');
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Send comment"
+                hitSlop={8}
+                style={({ pressed }) => [
+                  {
+                    backgroundColor: t.colors.tint,
+                    paddingHorizontal: 12,
+                    paddingVertical: 10,
+                    borderRadius: t.radius.md,
+                  },
+                  pressed && { opacity: 0.85 },
+                ]}
+              >
+                <IconSymbol name="paperplane.fill" color="#fff" size={18} />
+              </Pressable>
+            </View>
+          </View>
         </FormField>
 
         {(() => {

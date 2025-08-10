@@ -52,6 +52,16 @@ export default function GroupLayout() {
           ),
         }}
       />
+      <Stack.Screen
+        name="settle-up"
+        options={{
+          title: 'Settle Up',
+          headerLargeTitle: false,
+          headerLeft: () => (
+            <HeaderIconButton name="chevron.left" accessibilityLabel="Back" accessibilityHint="Go back" onPress={() => router.back()} />
+          ),
+        }}
+      />
     </Stack>
   );
 }

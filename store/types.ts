@@ -24,6 +24,13 @@ export type Attachment = {
   createdAt: number;
 };
 
+export type Comment = {
+  id: ID;
+  memberId: ID;
+  text: string;
+  createdAt: number;
+};
+
 export type Expense = {
   id: ID;
   groupId: ID;
@@ -33,6 +40,7 @@ export type Expense = {
   splitType: SplitType;
   shares?: Record<ID, number>; // used for non-equal splits
   attachments?: Attachment[]; // optional photos/receipts
+  comments?: Comment[]; // optional discussion
   createdAt: number;
 };
 
@@ -71,7 +79,9 @@ export type ActivityItem = {
     | 'group_renamed'
     | 'recurring_added'
     | 'recurring_edited'
-    | 'recurring_deleted';
+    | 'recurring_deleted'
+    | 'settlement_recorded'
+    | 'comment_added';
   message: string;
   attachmentsCount?: number;
   createdAt: number;
@@ -79,6 +89,7 @@ export type ActivityItem = {
 
 export type Settings = {
   currency: string; // ISO 4217 code e.g. 'USD'
+  locale?: string | 'system'; // BCP 47 or 'system' to follow device
 };
 
 export type State = {
@@ -89,7 +100,18 @@ export type State = {
   expenses: Record<ID, Expense>;
   activity: ActivityItem[]; // newest first
   recurring: Record<ID, RecurringExpense>;
+  settlements: Record<ID, Settlement>;
   settings: Settings;
+};
+
+export type Settlement = {
+  id: ID;
+  groupId: ID;
+  fromMemberId: ID; // payer
+  toMemberId: ID;   // receiver
+  amount: number;   // currency units, positive
+  note?: string;
+  createdAt: number;
 };
 
 export type AddExpensePayload = {
@@ -133,6 +155,19 @@ export type EditRecurringPayload = {
   active?: boolean;
 };
 
+export type AddSettlementPayload = {
+  groupId: ID;
+  fromMemberId: ID;
+  toMemberId: ID;
+  amount: number;
+  note?: string;
+};
+
+export type AddCommentPayload = {
+  expenseId: ID;
+  text: string;
+};
+
 export type Action =
   | { type: 'ADD_EXPENSE'; payload: AddExpensePayload }
   | { type: 'EDIT_EXPENSE'; payload: EditExpensePayload }
@@ -145,4 +180,8 @@ export type Action =
   | { type: 'TOGGLE_RECURRING_ACTIVE'; payload: { id: ID; active: boolean } }
   | { type: 'SET_GROUP_CURRENCY'; payload: { id: ID; currency?: string } }
   | { type: 'SET_CURRENCY'; payload: { currency: string } }
+  | { type: 'SET_LOCALE'; payload: { locale?: string | 'system' } }
+  | { type: 'ADD_SETTLEMENT'; payload: AddSettlementPayload }
+  | { type: 'DELETE_SETTLEMENT'; payload: { id: ID } }
+  | { type: 'ADD_COMMENT'; payload: AddCommentPayload }
   | { type: 'HYDRATE'; payload: State };

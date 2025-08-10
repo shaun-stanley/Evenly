@@ -18,6 +18,7 @@ const MAPPING: IconMapping = {
   'paperplane.fill': 'send',
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
+  'chevron.left': 'chevron-left',
   // Common actions
   'pencil': 'edit',
   'pencil.circle.fill': 'edit',
@@ -26,6 +27,7 @@ const MAPPING: IconMapping = {
   'plus.circle.fill': 'add-circle',
   'plus': 'add',
   'checkmark': 'check',
+  'checkmark.circle': 'check-circle',
   // Tabs
   'chart.pie.fill': 'pie-chart',
   'person.3': 'group',
@@ -40,6 +42,8 @@ const MAPPING: IconMapping = {
   'ellipsis.circle': 'more-horiz',
   'tray': 'inbox',
   'xmark': 'close',
+  'text.bubble': 'chat-bubble-outline',
+  'text.bubble.fill': 'chat-bubble',
 };
 
 /**
