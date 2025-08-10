@@ -29,8 +29,8 @@ export function FormField({ label, children, helper, style, required }: FormFiel
 
 function makeStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    container: { marginBottom: 16 },
-    label: { marginBottom: 8, color: t.colors.secondaryLabel },
-    helper: { marginTop: 6, color: t.colors.secondaryLabel },
+    container: { marginBottom: t.spacing.l },
+    label: { marginBottom: t.spacing.s, color: t.colors.secondaryLabel },
+    helper: { marginTop: t.spacing.xs, color: t.colors.secondaryLabel },
   });
 }

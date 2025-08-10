@@ -1,16 +1,15 @@
 import React, { useLayoutEffect } from 'react';
-import { ActionSheetIOS, FlatList, Platform, Pressable, Text, View, Alert } from 'react-native';
+import { ActionSheetIOS, FlatList, Platform, Pressable, Text, View, Alert, Switch } from 'react-native';
 import { useNavigation, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
-import { useStore, selectCurrencyForGroup } from '@/store/store';
+import { useStore, selectCurrencyForGroup, selectEffectiveLocale } from '@/store/store';
 import { useTheme } from '@/hooks/useTheme';
 import { ListItem } from '@/components/ui/ListItem';
 import { AvatarIcon } from '@/components/ui/AvatarIcon';
 import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
 import { formatCurrency } from '@/utils/currency';
 import { colorForActivity } from '@/utils/iconColors';
-import { Switch } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 
@@ -19,6 +18,7 @@ export default function RecurringListScreen() {
   const t = useTheme();
   const nav = useNavigation();
   const router = useRouter();
+  const effectiveLocale = selectEffectiveLocale(state);
 
   const data = React.useMemo(() => Object.values(state.recurring).sort((a, b) => b.createdAt - a.createdAt), [state.recurring]);
 
@@ -77,7 +77,7 @@ export default function RecurringListScreen() {
       >
         <View style={{ alignItems: 'center' }}>
           <IconSymbol name="pencil" color="#ffffff" size={20} />
-          <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600', marginTop: 4 }}>Edit</Text>
+          <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600', marginTop: t.spacing.xs }}>Edit</Text>
         </View>
       </Pressable>
       <Pressable
@@ -106,7 +106,7 @@ export default function RecurringListScreen() {
       >
         <View style={{ alignItems: 'center' }}>
           <IconSymbol name="trash" color="#ffffff" size={20} />
-          <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600', marginTop: 4 }}>Delete</Text>
+          <Text style={{ color: '#fff', fontSize: 12, fontWeight: '600', marginTop: t.spacing.xs }}>Delete</Text>
         </View>
       </Pressable>
     </View>
@@ -123,7 +123,7 @@ export default function RecurringListScreen() {
       data={data}
       keyExtractor={(item) => item.id}
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ paddingBottom: 24, paddingTop: 12 }}
+      contentContainerStyle={{ paddingBottom: t.spacing.xxl, paddingTop: t.spacing.m }}
       renderItem={({ item }) => (
         <Swipeable renderRightActions={() => renderRightActions(item.id)} overshootRight={false}>
           <ListItem
@@ -134,8 +134,8 @@ export default function RecurringListScreen() {
               </Text>
             }
             subtitle={
-              <Text style={{ color: t.colors.secondaryLabel, marginTop: 2 }}>
-                {formatCurrency(item.amount, { currency: selectCurrencyForGroup(state, item.groupId) })} • {ruleLabel(item.rule.interval, item.rule.frequency)} • Next {new Date(item.nextOccurrenceAt).toLocaleDateString()} {item.active ? '' : '• Paused'}
+              <Text style={{ color: t.colors.secondaryLabel, marginTop: t.spacing.xs }}>
+                {formatCurrency(item.amount, { currency: selectCurrencyForGroup(state, item.groupId), locale: effectiveLocale })} • {ruleLabel(item.rule.interval, item.rule.frequency)} • Next {new Date(item.nextOccurrenceAt).toLocaleDateString(effectiveLocale)} {item.active ? '' : '• Paused'}
               </Text>
             }
             right={
@@ -148,15 +148,14 @@ export default function RecurringListScreen() {
                 trackColor={{ false: t.colors.separator, true: t.colors.tint }}
               />
             }
-            style={{ marginHorizontal: 16, marginTop: 12 }}
             onPress={() => onRowPress(item.id)}
-            accessibilityLabel={`${item.description}, ${formatCurrency(item.amount, { currency: selectCurrencyForGroup(state, item.groupId) })}, ${ruleLabel(item.rule.interval, item.rule.frequency)}`}
+            accessibilityLabel={`${item.description}, ${formatCurrency(item.amount, { currency: selectCurrencyForGroup(state, item.groupId), locale: effectiveLocale })}, ${ruleLabel(item.rule.interval, item.rule.frequency)}`}
             accessibilityHint="Double tap to open actions"
           />
         </Swipeable>
       )}
       ListEmptyComponent={<View style={{ height: 1 }} />}
-      ListFooterComponent={<View style={{ height: 24 }} />}
+      ListFooterComponent={<View style={{ height: t.spacing.xxl }} />}
     />
   );
 }

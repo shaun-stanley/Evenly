@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
+import { Pressable, StyleProp, StyleSheet, Text, TextStyle, ViewStyle } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import { IconSymbol, IconSymbolName } from '@/components/ui/IconSymbol';
@@ -59,10 +59,10 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
     button: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
-      paddingHorizontal: 14,
-      paddingVertical: 10,
-      borderRadius: 12,
+      gap: t.spacing.s,
+      paddingHorizontal: t.spacing.l,
+      paddingVertical: t.spacing.m,
+      borderRadius: t.radius.md,
       shadowColor: t.shadows.card.color,
       shadowOffset: t.shadows.card.offset,
       shadowOpacity: t.shadows.card.opacity,

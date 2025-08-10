@@ -98,15 +98,15 @@ export default function ActivityScreen() {
       data={filtered}
       keyExtractor={(item) => item.id}
       contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ paddingBottom: 24, paddingTop: 12 }}
+      contentContainerStyle={{ paddingBottom: t.spacing.xxl, paddingTop: t.spacing.m }}
       ListHeaderComponent={
-        <View style={{ paddingHorizontal: 16, marginBottom: 4 }}>
+        <View style={{ paddingHorizontal: t.spacing.l, marginBottom: t.spacing.xs }}>
           <View
             style={{
               backgroundColor: t.colors.card,
               borderRadius: 12,
-              paddingHorizontal: 12,
-              paddingVertical: 6,
+              paddingHorizontal: t.spacing.m,
+              paddingVertical: t.spacing.s,
               shadowColor: t.shadows.card.color,
               shadowOffset: t.shadows.card.offset,
               shadowOpacity: t.shadows.card.opacity,
@@ -118,7 +118,7 @@ export default function ActivityScreen() {
               placeholderTextColor={t.colors.secondaryLabel}
               value={query}
               onChangeText={setQuery}
-              style={{ color: t.colors.label, fontSize: 16, paddingVertical: 6 }}
+              style={{ color: t.colors.label, fontSize: 16, paddingVertical: t.spacing.s }}
               accessibilityLabel="Search activity"
               returnKeyType="search"
               clearButtonMode="while-editing"
@@ -126,7 +126,7 @@ export default function ActivityScreen() {
           </View>
           <View
             accessibilityRole="tablist"
-            style={{ marginTop: 12, flexDirection: 'row', backgroundColor: t.colors.card, borderRadius: 10, padding: 4 }}
+            style={{ marginTop: t.spacing.m, flexDirection: 'row', backgroundColor: t.colors.card, borderRadius: t.radius.sm, padding: t.spacing.xs }}
           >
             {(['all', 'expenses', 'recurring', 'groups', 'settlements', 'comments'] as const).map((f) => (
               <Text
@@ -137,8 +137,8 @@ export default function ActivityScreen() {
                 style={{
                   flex: 1,
                   textAlign: 'center',
-                  paddingVertical: 8,
-                  borderRadius: 8,
+                  paddingVertical: t.spacing.s,
+                  borderRadius: t.radius.sm,
                   color: filter === f ? 'white' : t.colors.label,
                   backgroundColor: filter === f ? t.colors.tint : 'transparent',
                   fontWeight: filter === f ? '600' : '400',
@@ -165,14 +165,14 @@ export default function ActivityScreen() {
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      paddingHorizontal: 8,
-                      paddingVertical: 3,
-                      borderRadius: 12,
+                      paddingHorizontal: t.spacing.s,
+                      paddingVertical: t.spacing.xs,
+                      borderRadius: t.radius.sm,
                       backgroundColor: t.colors.fill,
                     }}
                   >
                     <IconSymbol name="paperclip" size={14} color={t.colors.secondaryLabel} />
-                    <Text style={{ marginLeft: 4, color: t.colors.secondaryLabel, fontSize: 12 }}>
+                    <Text style={{ marginLeft: t.spacing.xs, color: t.colors.secondaryLabel, fontSize: 12 }}>
                       {(item as any).attachmentsCount}
                     </Text>
                   </View>
@@ -180,7 +180,6 @@ export default function ActivityScreen() {
                 <Text style={{ color: t.colors.secondaryLabel }}>{timeAgo(item.createdAt)}</Text>
               </View>
             }
-            style={{ marginHorizontal: 16, marginTop: 12 }}
             accessibilityLabel={item.message}
             accessibilityHint="Activity item"
             onPress={() => router.push({ pathname: '/(tabs)/activity/detail', params: { id: item.id } } as never)}
@@ -188,7 +187,7 @@ export default function ActivityScreen() {
         );
       }}
       ListEmptyComponent={
-        <View style={{ padding: 16 }}>
+        <View style={{ padding: t.spacing.l }}>
           {state.activity.length === 0 ? (
             <EmptyState icon="clock" title="No activity yet" message="Your recent activity will appear here as you add expenses and make changes." />
           ) : (
@@ -196,7 +195,7 @@ export default function ActivityScreen() {
           )}
         </View>
       }
-      ListFooterComponent={<View style={{ height: 24 }} />}
+      ListFooterComponent={<View style={{ height: t.spacing.xxl }} />}
     />
   );
 }

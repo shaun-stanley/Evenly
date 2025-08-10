@@ -1,7 +1,7 @@
 import React from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View, Modal, Linking, Share, ActionSheetIOS } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useStore, selectCurrencyForGroup } from '@/store/store';
+import { useStore, selectCurrencyForGroup, selectEffectiveLocale } from '@/store/store';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/hooks/useTheme';
 import type { Tokens } from '@/theme/tokens';
@@ -44,6 +44,7 @@ export default function EditExpenseScreen() {
       : {}
   );
   const currency = selectCurrencyForGroup(state, expense?.groupId);
+  const effectiveLocale = selectEffectiveLocale(state);
 
   const ensureLibraryPermission = async (): Promise<boolean> => {
     try {
@@ -378,7 +379,7 @@ export default function EditExpenseScreen() {
           required
           helper={(() => {
             const v = amountCents / 100;
-            if (!isNaN(v) && v > 0) return <Text style={styles.helper}>Will update to {formatCurrency(v, { currency })}</Text>;
+            if (!isNaN(v) && v > 0) return <Text style={styles.helper}>Will update to {formatCurrency(v, { currency, locale: effectiveLocale })}</Text>;
             return null;
           })()}
         >

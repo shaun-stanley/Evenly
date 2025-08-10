@@ -3,7 +3,7 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, Tex
 import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
-import { useStore, selectCurrencyForGroup } from '@/store/store';
+import { useStore, selectCurrencyForGroup, selectEffectiveLocale } from '@/store/store';
 import type { RecurrenceFrequency } from '@/store/types';
 import { useTheme } from '@/hooks/useTheme';
 import { FormField } from '@/components/ui/FormField';
@@ -28,6 +28,7 @@ export default function EditRecurringScreen() {
   const currency = rec ? selectCurrencyForGroup(state, rec.groupId) : state.settings.currency;
 
   const canSave = !!rec && description.trim().length > 0 && amountCents > 0;
+  const effectiveLocale = selectEffectiveLocale(state);
 
   const onSave = React.useCallback(() => {
     if (!rec || !id || !canSave) return;
@@ -84,8 +85,8 @@ export default function EditRecurringScreen() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.select({ ios: 'padding', default: undefined })} style={{ flex: 1, backgroundColor: t.colors.background }}>
-      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingBottom: 24 }}>
-        <Card style={{ marginHorizontal: 16, marginTop: 16 }}>
+      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingBottom: t.spacing.xxl }}>
+        <Card style={{ marginHorizontal: t.spacing.l, marginTop: t.spacing.l }}>
           <ListItem
             title={<Text style={{ color: t.colors.label, fontWeight: '600' }}>Group</Text>}
             right={<Text style={{ color: t.colors.secondaryLabel }}>{state.groups[rec.groupId]?.name}</Text>}
@@ -103,9 +104,9 @@ export default function EditRecurringScreen() {
               returnKeyType="next"
               style={{
                 backgroundColor: t.colors.card,
-                borderRadius: 10,
-                paddingHorizontal: 12,
-                paddingVertical: 10,
+                borderRadius: t.radius.md,
+                paddingHorizontal: t.spacing.m,
+                paddingVertical: t.spacing.m,
                 color: t.colors.label,
                 borderWidth: 1,
                 borderColor: t.colors.separator,
@@ -116,7 +117,7 @@ export default function EditRecurringScreen() {
             label="Amount"
             helper={(() => {
               const v = amountCents / 100;
-              if (!isNaN(v) && v > 0) return <Text style={{ color: t.colors.secondaryLabel }}>Will create {formatCurrency(v, { currency })} on schedule</Text>;
+              if (!isNaN(v) && v > 0) return <Text style={{ color: t.colors.secondaryLabel }}>Will create {formatCurrency(v, { currency, locale: effectiveLocale })} on schedule</Text>;
               return null;
             })()}
           >
@@ -128,9 +129,9 @@ export default function EditRecurringScreen() {
               returnKeyType="done"
               style={{
                 backgroundColor: t.colors.card,
-                borderRadius: 10,
-                paddingHorizontal: 12,
-                paddingVertical: 10,
+                borderRadius: t.radius.md,
+                paddingHorizontal: t.spacing.m,
+                paddingVertical: t.spacing.m,
                 color: t.colors.label,
                 borderWidth: 1,
                 borderColor: t.colors.separator,
@@ -139,9 +140,9 @@ export default function EditRecurringScreen() {
           </FormField>
         </Card>
 
-        <Card style={{ marginHorizontal: 16, marginTop: 12, marginBottom: 24 }}>
-          <Text style={{ color: t.colors.secondaryLabel, fontSize: 12, fontWeight: '700', marginBottom: 8 }}>FREQUENCY</Text>
-          <View style={{ flexDirection: 'row', gap: 8 }}>
+        <Card style={{ marginHorizontal: t.spacing.l, marginTop: t.spacing.m, marginBottom: t.spacing.xxl }}>
+          <Text style={{ color: t.colors.secondaryLabel, fontSize: 12, fontWeight: '700', marginBottom: t.spacing.s }}>FREQUENCY</Text>
+          <View style={{ flexDirection: 'row', gap: t.spacing.s }}>
             {(['daily', 'weekly', 'monthly', 'yearly'] as RecurrenceFrequency[]).map((f) => {
               const selected = f === frequency;
               return (
@@ -151,9 +152,9 @@ export default function EditRecurringScreen() {
                   style={({ pressed }) => [
                     {
                       backgroundColor: selected ? t.colors.tint : t.colors.card,
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      borderRadius: 12,
+                      paddingHorizontal: t.spacing.m,
+                      paddingVertical: t.spacing.s,
+                      borderRadius: t.radius.md,
                       shadowColor: t.shadows.card.color,
                       shadowOffset: t.shadows.card.offset,
                       shadowOpacity: t.shadows.card.opacity,
@@ -175,9 +176,9 @@ export default function EditRecurringScreen() {
               keyboardType="number-pad"
               style={{
                 backgroundColor: t.colors.card,
-                borderRadius: 10,
-                paddingHorizontal: 12,
-                paddingVertical: 10,
+                borderRadius: t.radius.md,
+                paddingHorizontal: t.spacing.m,
+                paddingVertical: t.spacing.m,
                 color: t.colors.label,
                 borderWidth: 1,
                 borderColor: t.colors.separator,
@@ -186,7 +187,7 @@ export default function EditRecurringScreen() {
           </FormField>
         </Card>
 
-        <View style={{ marginHorizontal: 16, gap: 12 }}>
+        <View style={{ marginHorizontal: t.spacing.l, gap: t.spacing.m }}>
           <Button title="Save changes" variant="filled" onPress={onSave} disabled={!canSave} accessibilityLabel="Save recurring changes" />
           <Button title="Delete recurring" variant="destructive" onPress={onDelete} accessibilityLabel="Delete recurring" />
         </View>

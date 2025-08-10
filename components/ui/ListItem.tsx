@@ -98,15 +98,15 @@ export function ListItem({
 function makeStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     pressable: {
-      marginHorizontal: 16,
-      marginTop: 12,
+      marginHorizontal: t.spacing.l,
+      marginTop: t.spacing.m,
     },
     container: {
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: t.colors.card,
-      paddingHorizontal: 16,
-      paddingVertical: 14,
+      paddingHorizontal: t.spacing.l,
+      paddingVertical: t.spacing.m,
       minHeight: 44,
       borderRadius: t.radius.md,
       shadowColor: t.shadows.card.color,
@@ -114,10 +114,10 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
       shadowOpacity: t.shadows.card.opacity,
       shadowRadius: t.shadows.card.radius,
     },
-    left: { marginRight: 12 },
+    left: { marginRight: t.spacing.m },
     center: { flex: 1 },
-    right: { marginLeft: 8, flexDirection: 'row', alignItems: 'center' },
+    right: { marginLeft: t.spacing.s, flexDirection: 'row', alignItems: 'center' },
     title: { fontSize: 16, fontWeight: '600', color: t.colors.label },
-    subtitle: { marginTop: 2, color: t.colors.secondaryLabel },
+    subtitle: { marginTop: t.spacing.xs, color: t.colors.secondaryLabel },
   });
 }

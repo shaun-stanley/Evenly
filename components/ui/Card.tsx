@@ -29,6 +29,6 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
       shadowOpacity: t.shadows.card.opacity,
       shadowRadius: t.shadows.card.radius,
     },
-    padded: { padding: 16 },
+    padded: { paddingHorizontal: t.spacing.l, paddingVertical: t.spacing.l },
   });
 }

@@ -1,8 +1,8 @@
 import React, { useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 
-import { useStore } from '@/store/store';
+import { useStore, selectEffectiveLocale } from '@/store/store';
 import { useTheme } from '@/hooks/useTheme';
 import { AvatarIcon } from '@/components/ui/AvatarIcon';
 import { colorForActivity } from '@/utils/iconColors';
@@ -39,6 +39,7 @@ export default function ActivityDetailScreen() {
   const { state } = useStore();
   const t = useTheme();
   const nav = useNavigation();
+  const effectiveLocale = selectEffectiveLocale(state);
 
   const item = state.activity.find((a) => a.id === id);
 
@@ -57,21 +58,21 @@ export default function ActivityDetailScreen() {
   const created = new Date(item.createdAt);
 
   return (
-    <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 16 }}>
-      <View style={{ alignItems: 'center', marginTop: 8 }}>
+    <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: t.spacing.l }}>
+      <View style={{ alignItems: 'center', marginTop: t.spacing.s }}>
         <AvatarIcon name={iconForType(item.type)} bgColor={colorForActivity(item.type)} size={28} containerSize={64} />
       </View>
 
-      <Text style={{ color: t.colors.label, fontSize: 20, fontWeight: '600', textAlign: 'center', marginTop: 12 }}>
+      <Text style={{ color: t.colors.label, fontSize: 20, fontWeight: '600', textAlign: 'center', marginTop: t.spacing.m }}>
         {item.message}
       </Text>
 
       <View
         style={{
-          marginTop: 16,
+          marginTop: t.spacing.l,
           backgroundColor: t.colors.card,
-          borderRadius: 12,
-          padding: 12,
+          borderRadius: t.radius.md,
+          padding: t.spacing.m,
           shadowColor: t.shadows.card.color,
           shadowOffset: t.shadows.card.offset,
           shadowOpacity: t.shadows.card.opacity,
@@ -86,19 +87,19 @@ export default function ActivityDetailScreen() {
           </View>
         </Row>
         <Row label="Date">
-          <Text style={{ color: t.colors.label, fontSize: 16 }}>{created.toLocaleString()}</Text>
+          <Text style={{ color: t.colors.label, fontSize: 16 }}>{created.toLocaleString(effectiveLocale)}</Text>
         </Row>
         {typeof item.attachmentsCount === 'number' && item.attachmentsCount > 0 ? (
           <Row label="Attachments">
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <IconSymbol name="paperclip" size={16} color={t.colors.secondaryLabel} />
-              <Text style={{ marginLeft: 6, color: t.colors.label, fontSize: 16 }}>{item.attachmentsCount}</Text>
+              <Text style={{ marginLeft: t.spacing.xs, color: t.colors.label, fontSize: 16 }}>{item.attachmentsCount}</Text>
             </View>
           </Row>
         ) : null}
       </View>
 
-      <View style={{ height: 24 }} />
+      <View style={{ height: t.spacing.xxl }} />
     </ScrollView>
   );
 }
@@ -106,22 +107,9 @@ export default function ActivityDetailScreen() {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   const t = useTheme();
   return (
-    <View style={styles.row}>
-      <Text style={[styles.rowLabel, { color: t.colors.secondaryLabel }]}>{label}</Text>
+    <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: t.spacing.m }}>
+      <Text style={{ width: 110, fontSize: 14, marginRight: t.spacing.s, color: t.colors.secondaryLabel }}>{label}</Text>
       <View style={{ flex: 1 }}>{children}</View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  rowLabel: {
-    width: 110,
-    fontSize: 14,
-    marginRight: 8,
-  },
-});

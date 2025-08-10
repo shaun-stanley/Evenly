@@ -3,7 +3,7 @@ import { ActionSheetIOS, KeyboardAvoidingView, Platform, Pressable, ScrollView, 
 import { useNavigation, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
-import { useStore, selectGroupsArray, selectCurrencyForGroup } from '@/store/store';
+import { useStore, selectGroupsArray, selectCurrencyForGroup, selectEffectiveLocale } from '@/store/store';
 import type { RecurrenceFrequency } from '@/store/types';
 import { useTheme } from '@/hooks/useTheme';
 import { FormField } from '@/components/ui/FormField';
@@ -20,6 +20,7 @@ export default function NewRecurringScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const groups = selectGroupsArray(state);
+  const effectiveLocale = selectEffectiveLocale(state);
 
   const [description, setDescription] = React.useState('');
   const [amountCents, setAmountCents] = React.useState(0);
@@ -128,7 +129,7 @@ export default function NewRecurringScreen() {
             label="Amount"
             helper={(() => {
               const v = amountCents / 100;
-              if (!isNaN(v) && v > 0) return <Text style={{ color: t.colors.secondaryLabel }}>Will create {formatCurrency(v, { currency })} on schedule</Text>;
+              if (!isNaN(v) && v > 0) return <Text style={{ color: t.colors.secondaryLabel }}>Will create {formatCurrency(v, { currency, locale: effectiveLocale })} on schedule</Text>;
               return null;
             })()}
           >

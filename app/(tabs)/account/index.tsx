@@ -88,10 +88,10 @@ export default function AccountScreen() {
 
 function makeStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    card: { marginHorizontal: 16, marginTop: 16 },
-    title: { color: t.colors.label, fontSize: 17, fontWeight: '600', marginBottom: 8 },
+    card: { marginHorizontal: t.spacing.l, marginTop: t.spacing.l },
+    title: { color: t.colors.label, fontSize: 17, fontWeight: '600', marginBottom: t.spacing.s },
     titleRow: { color: t.colors.label, fontSize: 16, fontWeight: '600' },
-    muted: { color: t.colors.secondaryLabel, marginTop: 4 },
+    muted: { color: t.colors.secondaryLabel, marginTop: t.spacing.xs },
     rightText: { color: t.colors.label, fontWeight: '600' },
   });
 }

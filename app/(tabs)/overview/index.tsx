@@ -5,10 +5,10 @@ import { useStore, computeUserTotals, selectGroupsArray, computeGroupTotalsForUs
 import { useTheme } from '@/hooks/useTheme';
 import { Card } from '@/components/ui/Card';
 import { ListItem } from '@/components/ui/ListItem';
-import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
+// import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import * as Haptics from 'expo-haptics';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+// import { IconSymbol } from '@/components/ui/IconSymbol';
 import { AvatarIcon } from '@/components/ui/AvatarIcon';
 import { colorForActivity, colorForGroup } from '@/utils/iconColors';
 import { formatCurrency } from '@/utils/currency';
@@ -35,13 +35,6 @@ export default function OverviewScreen() {
     });
   }, [navigation, router]);
 
-  if (!hydrated) return null;
-
-  const owesMore = totals.owes >= totals.owed;
-  const headline = owesMore ? 'YOU OWE' : 'YOU ARE OWED';
-  const headlineColor = owesMore ? t.colors.danger : t.colors.success;
-  const headlineAmount = owesMore ? totals.owes : totals.owed;
-
   const [refreshing, setRefreshing] = React.useState(false);
 
   const onRefresh = React.useCallback(() => {
@@ -49,6 +42,13 @@ export default function OverviewScreen() {
     Haptics.selectionAsync().catch(() => {});
     setTimeout(() => setRefreshing(false), 600);
   }, []);
+
+  if (!hydrated) return null;
+
+  const owesMore = totals.owes >= totals.owed;
+  const headline = owesMore ? 'YOU OWE' : 'YOU ARE OWED';
+  const headlineColor = owesMore ? t.colors.danger : t.colors.success;
+  const headlineAmount = owesMore ? totals.owes : totals.owed;
 
   const handleAddExpense = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
@@ -110,7 +110,7 @@ export default function OverviewScreen() {
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
       style={styles.container}
-      contentContainerStyle={{ paddingBottom: 24 }}
+      contentContainerStyle={{ paddingBottom: t.spacing.xxl }}
       scrollEventThrottle={16}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
@@ -138,7 +138,7 @@ export default function OverviewScreen() {
         />
       ))}
       {state.activity.length === 0 && (
-        <View style={{ paddingHorizontal: 16 }}>
+        <View style={{ paddingHorizontal: t.spacing.l }}>
           <EmptyState icon="clock" title="No activity yet" message="Add expenses to see recent activity here.">
             <Pressable
               accessibilityRole="button"
@@ -152,7 +152,7 @@ export default function OverviewScreen() {
         </View>
       )}
 
-      <Text style={[styles.sectionHeader, { marginTop: 16 }]}>YOUR GROUPS</Text>
+      <Text style={[styles.sectionHeader, { marginTop: t.spacing.l }]}>YOUR GROUPS</Text>
       {groups.map((g) => {
         const gt = computeGroupTotalsForUserInGroup(state, g.id);
         let right: React.ReactNode = <Text style={styles.groupStatusMuted}>Settled up</Text>;
@@ -174,7 +174,7 @@ export default function OverviewScreen() {
         );
       })}
       {groups.length === 0 && (
-        <View style={{ paddingHorizontal: 16 }}>
+        <View style={{ paddingHorizontal: t.spacing.l }}>
           <EmptyState icon="person.3" title="No groups yet" message="Create a group to start splitting expenses with friends.">
             <Pressable
               accessibilityRole="button"
@@ -187,7 +187,7 @@ export default function OverviewScreen() {
           </EmptyState>
         </View>
       )}
-      <View style={{ height: 24 }} />
+      <View style={{ height: t.spacing.xxl }} />
     </ScrollView>
   );
 }
@@ -195,28 +195,28 @@ export default function OverviewScreen() {
 function makeStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     container: { flex: 1 },
-    balanceCard: { marginHorizontal: 16, marginTop: 0 },
-    infoCard: { marginHorizontal: 16, marginTop: 8 },
+    balanceCard: { marginHorizontal: t.spacing.l, marginTop: 0 },
+    infoCard: { marginHorizontal: t.spacing.l, marginTop: t.spacing.s },
     balanceLabel: { color: t.colors.secondaryLabel, fontSize: 12, fontWeight: '700', letterSpacing: 0.3 },
-    balanceAmount: { fontSize: 34, fontWeight: '700', marginTop: 4 },
-    balanceMeta: { color: t.colors.secondaryLabel, marginTop: 4 },
-    sectionHeader: { color: t.colors.secondaryLabel, fontSize: 12, fontWeight: '700', marginHorizontal: 16, marginTop: 20, marginBottom: 8 },
+    balanceAmount: { fontSize: 34, fontWeight: '700', marginTop: t.spacing.xs },
+    balanceMeta: { color: t.colors.secondaryLabel, marginTop: t.spacing.xs },
+    sectionHeader: { color: t.colors.secondaryLabel, fontSize: 12, fontWeight: '700', marginHorizontal: t.spacing.l, marginTop: t.spacing.xl, marginBottom: t.spacing.s },
     activityTitle: { color: t.colors.label, fontSize: 16, fontWeight: '500' },
     activityDate: { color: t.colors.secondaryLabel },
     groupName: { color: t.colors.label, fontSize: 16, fontWeight: '600' },
-    groupMeta: { color: t.colors.secondaryLabel, marginTop: 2 },
+    groupMeta: { color: t.colors.secondaryLabel, marginTop: t.spacing.xs },
     groupStatusNeg: { color: t.colors.danger },
     groupStatusPos: { color: t.colors.success },
     groupStatusMuted: { color: t.colors.secondaryLabel },
-    muted: { color: t.colors.secondaryLabel, marginHorizontal: 16 },
-    ctaRow: { flexDirection: 'row', gap: 12, marginHorizontal: 16, marginTop: 12 },
+    muted: { color: t.colors.secondaryLabel, marginHorizontal: t.spacing.l },
+    ctaRow: { flexDirection: 'row', gap: t.spacing.m, marginHorizontal: t.spacing.l, marginTop: t.spacing.m },
     ctaButton: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
-      paddingHorizontal: 14,
-      paddingVertical: 10,
-      borderRadius: 12,
+      gap: t.spacing.s,
+      paddingHorizontal: t.spacing.l,
+      paddingVertical: t.spacing.m,
+      borderRadius: t.radius.md,
       shadowColor: t.shadows.card.color,
       shadowOffset: t.shadows.card.offset,
       shadowOpacity: t.shadows.card.opacity,
@@ -224,12 +224,12 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
     },
     ctaText: { color: '#fff', fontWeight: '600' },
     emptyButton: {
-      marginTop: 10,
+      marginTop: t.spacing.m,
       backgroundColor: t.colors.tint,
       alignSelf: 'center',
-      paddingHorizontal: 14,
-      paddingVertical: 8,
-      borderRadius: 10,
+      paddingHorizontal: t.spacing.l,
+      paddingVertical: t.spacing.s,
+      borderRadius: t.radius.md,
     },
     emptyButtonText: { color: '#fff', fontWeight: '600' },
   });

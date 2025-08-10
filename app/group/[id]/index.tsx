@@ -2,7 +2,7 @@ import React from 'react';
 import { Alert, ActionSheetIOS, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import { useLayoutEffect, useMemo } from 'react';
-import { useStore, selectGroup, selectExpensesForGroup, computeGroupTotalsForUserInGroup, selectCurrencyForGroup } from '@/store/store';
+import { useStore, selectGroup, selectExpensesForGroup, computeGroupTotalsForUserInGroup, selectCurrencyForGroup, selectEffectiveLocale } from '@/store/store';
 import { Swipeable } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -30,6 +30,7 @@ export default function GroupDetailScreen() {
   );
   const groupTotals = useMemo(() => (id ? computeGroupTotalsForUserInGroup(state, id) : { owes: 0, owed: 0 }), [state, id]);
   const currency = selectCurrencyForGroup(state, id ? String(id) : undefined);
+  const effectiveLocale = selectEffectiveLocale(state);
   const [showCurrencyPicker, setShowCurrencyPicker] = React.useState(false);
 
   useLayoutEffect(() => {
@@ -212,13 +213,13 @@ export default function GroupDetailScreen() {
         ) : (
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <Text style={styles.muted}>You owe</Text>
-            <Text style={[styles.amountNeg]}>{formatCurrency(groupTotals.owes, { currency })}</Text>
+            <Text style={[styles.amountNeg]}>{formatCurrency(groupTotals.owes, { currency, locale: effectiveLocale })}</Text>
           </View>
         )}
         {groupTotals.owed > 0 && (
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
             <Text style={styles.muted}>You are owed</Text>
-            <Text style={[styles.amountPos]}>{formatCurrency(groupTotals.owed, { currency })}</Text>
+            <Text style={[styles.amountPos]}>{formatCurrency(groupTotals.owed, { currency, locale: effectiveLocale })}</Text>
           </View>
         )}
       </Card>
@@ -276,10 +277,10 @@ export default function GroupDetailScreen() {
                         <Text style={styles.attachCount}>{e.comments.length}</Text>
                       </View>
                     ) : null}
-                    <Text style={styles.expenseAmount}>{formatCurrency(e.amount, { currency: selectCurrencyForGroup(state, e.groupId) })}</Text>
+                    <Text style={styles.expenseAmount}>{formatCurrency(e.amount, { currency: selectCurrencyForGroup(state, e.groupId), locale: effectiveLocale })}</Text>
                   </View>
                 }
-                accessibilityLabel={`Expense ${e.description}, ${formatCurrency(e.amount, { currency: selectCurrencyForGroup(state, e.groupId) })}, paid by ${state.members[e.paidBy]?.name ?? 'someone'}`}
+                accessibilityLabel={`Expense ${e.description}, ${formatCurrency(e.amount, { currency: selectCurrencyForGroup(state, e.groupId), locale: effectiveLocale })}, paid by ${state.members[e.paidBy]?.name ?? 'someone'}`}
                 accessibilityHint="Opens options for this expense"
                 onPress={() => onExpensePress(e.id)}
               />
