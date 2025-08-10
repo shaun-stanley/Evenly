@@ -5,7 +5,7 @@ import { useStore, computeUserTotals, selectGroupsArray, computeGroupTotalsForUs
 import { useTheme } from '@/hooks/useTheme';
 import { Card } from '@/components/ui/Card';
 import { ListItem } from '@/components/ui/ListItem';
-// import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
+import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import * as Haptics from 'expo-haptics';
 // import { IconSymbol } from '@/components/ui/IconSymbol';
@@ -31,7 +31,14 @@ export default function OverviewScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({
       title: 'Evenly',
-      headerRight: undefined,
+      headerRight: () => (
+        <HeaderIconButton
+          name="person.crop.circle"
+          accessibilityLabel="Account"
+          accessibilityHint="Opens your account settings"
+          onPress={() => router.push('/(tabs)/account')}
+        />
+      ),
     });
   }, [navigation, router]);
 

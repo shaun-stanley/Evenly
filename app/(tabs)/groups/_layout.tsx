@@ -12,9 +12,10 @@ export default function GroupsLayout() {
   const router = useRouter();
   return (
     <Stack screenOptions={{
-      headerLargeTitle: false,
+      headerLargeTitle: true,
       headerTintColor: colors.tint,
       headerTitleStyle: { color: colors.label, fontSize: 17, fontWeight: '600' },
+      headerLargeTitleStyle: { color: colors.label },
       headerShadowVisible: false,
       headerTransparent: Platform.OS === 'ios',
       headerStyle: { backgroundColor: Platform.OS === 'ios' ? 'transparent' : colors.background },
@@ -26,6 +27,7 @@ export default function GroupsLayout() {
         options={{
           title: 'New Group',
           presentation: 'modal',
+          headerLargeTitle: false,
           headerLeft: () => (
             <HeaderIconButton name="xmark" accessibilityLabel="Close" accessibilityHint="Dismiss" onPress={() => router.back()} />
           ),

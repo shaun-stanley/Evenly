@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
-import { useColorScheme } from 'react-native';
+import { Platform, useColorScheme } from 'react-native';
+import HeaderBackground from '@/components/ui/HeaderBackground';
 
 export default function OverviewLayout() {
   const scheme = useColorScheme();
@@ -12,12 +13,11 @@ export default function OverviewLayout() {
       headerLargeTitle: true,
       headerTintColor: colors.tint,
       headerTitleStyle: { color: colors.label, fontSize: 17, fontWeight: '600' },
+      headerLargeTitleStyle: { color: colors.label },
       headerShadowVisible: false,
-      headerTransparent: false,
-      headerBackground: undefined,
-      // Native blur on iOS for UINavigationBar
-      headerBlurEffect: 'systemChromeMaterial',
-      headerStyle: { backgroundColor: colors.background },
+      headerTransparent: Platform.OS === 'ios',
+      headerStyle: { backgroundColor: Platform.OS === 'ios' ? 'transparent' : colors.background },
+      headerBackground: Platform.OS === 'ios' ? (() => <HeaderBackground />) : undefined,
     }}>
       <Stack.Screen
         name="index"

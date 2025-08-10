@@ -24,7 +24,8 @@ export default function GroupLayout() {
         name="index"
         options={{
           title: 'Group',
-          headerLargeTitle: true,
+          // Use small title for consistency
+          headerLargeTitle: false,
           headerLeft: () => (
             <HeaderIconButton name="chevron.left" accessibilityLabel="Back" accessibilityHint="Go back" onPress={() => router.back()} />
           ),

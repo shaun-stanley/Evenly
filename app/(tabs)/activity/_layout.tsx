@@ -12,22 +12,23 @@ export default function ActivityLayout() {
   const router = useRouter();
   return (
     <Stack screenOptions={{
-      headerLargeTitle: false,
+      headerLargeTitle: true,
       headerTintColor: colors.tint,
       headerTitleStyle: { color: colors.label, fontSize: 17, fontWeight: '600' },
+      headerLargeTitleStyle: { color: colors.label },
       headerShadowVisible: false,
       headerTransparent: Platform.OS === 'ios',
       headerStyle: { backgroundColor: Platform.OS === 'ios' ? 'transparent' : colors.background },
       headerBackground: Platform.OS === 'ios' ? (() => <HeaderBackground />) : undefined,
     }}>
       <Stack.Screen name="index" options={{ title: 'Activity' }} />
-      <Stack.Screen name="recurring-list" options={{ title: 'Recurring', headerLeft: () => (
+      <Stack.Screen name="recurring-list" options={{ title: 'Recurring', headerLargeTitle: false, headerLeft: () => (
         <HeaderIconButton name="chevron.left" accessibilityLabel="Back" accessibilityHint="Go back" onPress={() => router.back()} />
       ) }} />
-      <Stack.Screen name="recurring" options={{ title: 'New Recurring', headerLeft: () => (
+      <Stack.Screen name="recurring" options={{ title: 'New Recurring', headerLargeTitle: false, headerLeft: () => (
         <HeaderIconButton name="chevron.left" accessibilityLabel="Back" accessibilityHint="Go back" onPress={() => router.back()} />
       ) }} />
-      <Stack.Screen name="recurring-edit/[id]" options={{ title: 'Edit Recurring', headerLeft: () => (
+      <Stack.Screen name="recurring-edit/[id]" options={{ title: 'Edit Recurring', headerLargeTitle: false, headerLeft: () => (
         <HeaderIconButton name="chevron.left" accessibilityLabel="Back" accessibilityHint="Go back" onPress={() => router.back()} />
       ) }} />
     </Stack>

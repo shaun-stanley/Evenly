@@ -36,7 +36,6 @@ export default function GroupDetailScreen() {
   const currency = selectCurrencyForGroup(state, id ? String(id) : undefined);
   const effectiveLocale = selectEffectiveLocale(state);
   const [showCurrencyPicker, setShowCurrencyPicker] = React.useState(false);
-  const [compact, setCompact] = useState(false);
 
   // Animated net balance (counts up/down smoothly)
   const net = (groupTotals?.owed ?? 0) - (groupTotals?.owes ?? 0);
@@ -117,16 +116,6 @@ export default function GroupDetailScreen() {
           }}
         />
       ),
-      headerTitle: compact
-        ? () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: t.colors.separator, marginRight: t.spacing.s }} />
-              <Text style={{ ...t.text.headline, color: t.colors.label }} numberOfLines={1}>
-                {group?.name ?? 'Group'}
-              </Text>
-            </View>
-          )
-        : undefined,
     });
   }, [
     group?.name,
@@ -134,11 +123,6 @@ export default function GroupDetailScreen() {
     router,
     id,
     renameGroup,
-    t.colors.separator,
-    t.colors.label,
-    t.spacing.s,
-    t.text.headline,
-    compact,
   ]);
 
   if (!hydrated) return null;
@@ -227,12 +211,6 @@ export default function GroupDetailScreen() {
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={{ flex: 1 }}
-        onScroll={(e) => {
-          const y = e.nativeEvent.contentOffset.y;
-          const isCompact = y > 8;
-          if (isCompact !== compact) setCompact(isCompact);
-        }}
-        scrollEventThrottle={16}
         contentContainerStyle={{ paddingBottom: t.spacing.xxl * 2 }}
       >
         {/* Glass balance card */}
