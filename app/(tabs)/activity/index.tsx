@@ -1,5 +1,5 @@
 import React, { useLayoutEffect } from 'react';
-import { FlatList, ScrollView, Text, TextInput, View, StyleSheet } from 'react-native';
+import { FlatList, ScrollView, Text, View, Pressable } from 'react-native';
 import { useStore } from '@/store/store';
 import { useTheme } from '@/hooks/useTheme';
 import { ListItem } from '@/components/ui/ListItem';
@@ -9,6 +9,10 @@ import { AvatarIcon } from '@/components/ui/AvatarIcon';
 import { colorForActivity } from '@/utils/iconColors';
 import { useNavigation, useRouter } from 'expo-router';
 import { HeaderIconButton } from '@/components/ui/HeaderIconButton';
+import { SearchField } from '@/components/ui/SearchField';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
+import { useHaptics } from '@/hooks/useHaptics';
+import { useRecentSearches } from '@/hooks/useRecentSearches';
 
 function timeAgo(ts: number): string {
   const diff = Date.now() - ts;
@@ -28,6 +32,7 @@ export default function ActivityScreen() {
   // no local styles; using theme tokens directly
   const navigation = useNavigation();
   const router = useRouter();
+  const haptics = useHaptics();
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -77,6 +82,13 @@ export default function ActivityScreen() {
 
   const [query, setQuery] = React.useState('');
   const [filter, setFilter] = React.useState<'all' | 'expenses' | 'recurring' | 'groups' | 'settlements' | 'comments'>('all');
+  const { recents, addRecent, removeRecent, clearRecents } = useRecentSearches('activity');
+  const [searchFocused, setSearchFocused] = React.useState(false);
+  const [refreshing, setRefreshing] = React.useState(false);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => setRefreshing(false), 600);
+  }, []);
 
   const matchesFilter = React.useCallback((type: string) => {
     if (filter === 'all') return true;
@@ -93,66 +105,86 @@ export default function ActivityScreen() {
     return state.activity.filter((a) => matchesFilter(a.type) && (q.length === 0 || a.message.toLowerCase().includes(q)));
   }, [state.activity, query, matchesFilter]);
 
+  const segments = React.useMemo(
+    () => [
+      { key: 'all', label: 'All' },
+      { key: 'expenses', label: 'Expenses' },
+      { key: 'recurring', label: 'Recurring' },
+      { key: 'groups', label: 'Groups' },
+      { key: 'settlements', label: 'Settlements' },
+      { key: 'comments', label: 'Comments' },
+    ],
+    []
+  );
+
   return (
     <FlatList
       data={filtered}
       keyExtractor={(item) => item.id}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={{ paddingBottom: t.spacing.xxl, paddingTop: t.spacing.m }}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
       ListHeaderComponent={
         <View style={{ paddingHorizontal: t.spacing.l, marginBottom: t.spacing.xs }}>
-          <View
-            style={{
-              backgroundColor: t.colors.card,
-              borderRadius: 12,
-              paddingHorizontal: t.spacing.m,
-              paddingVertical: t.spacing.s,
-              borderWidth: StyleSheet.hairlineWidth,
-              borderColor: t.colors.separator,
-            }}
-          >
-            <TextInput
-              placeholder="Search activity"
-              placeholderTextColor={t.colors.secondaryLabel}
-              value={query}
-              onChangeText={setQuery}
-              style={{ color: t.colors.label, fontSize: 16, paddingVertical: t.spacing.s }}
-              accessibilityLabel="Search activity"
-              returnKeyType="search"
-              clearButtonMode="while-editing"
+          <SearchField
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search activity"
+            accessibilityLabel="Search activity"
+            onFocus={() => setSearchFocused(true)}
+            onBlur={() => setSearchFocused(false)}
+            onSubmitEditing={() => addRecent(query)}
+          />
+          {searchFocused && recents.length > 0 && query.trim().length === 0 ? (
+            <View style={{ marginTop: t.spacing.s }}>
+              <Text style={{ ...t.text.footnote, color: t.colors.secondaryLabel, marginBottom: t.spacing.xs }}>Recent searches</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: t.spacing.xs }}>
+                {recents.map((r) => (
+                  <View key={r} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: t.colors.fill, borderRadius: t.radius.sm }}>
+                    <Pressable
+                      onPress={() => setQuery(r)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Search ${r}`}
+                      style={({ pressed }) => [{ paddingHorizontal: t.spacing.m, paddingVertical: t.spacing.s }, pressed && { opacity: 0.8 }]}
+                    >
+                      <Text style={{ ...t.text.subheadline, color: t.colors.label }}>{r}</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => removeRecent(r)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Remove ${r}`}
+                      hitSlop={8}
+                      style={({ pressed }) => [{ paddingRight: t.spacing.s }, pressed && { opacity: 0.7 }]}
+                    >
+                      <IconSymbol name="xmark" size={12} color={t.colors.secondaryLabel} />
+                    </Pressable>
+                  </View>
+                ))}
+                <Pressable
+                  onPress={() => clearRecents()}
+                  accessibilityRole="button"
+                  accessibilityLabel="Clear recent searches"
+                  style={({ pressed }) => [
+                    { paddingHorizontal: t.spacing.m, paddingVertical: t.spacing.s, backgroundColor: t.colors.fill, borderRadius: t.radius.sm },
+                    pressed && { opacity: 0.8 },
+                  ]}
+                >
+                  <Text style={{ ...t.text.subheadline, color: t.colors.secondaryLabel }}>Clear</Text>
+                </Pressable>
+              </ScrollView>
+            </View>
+          ) : null}
+
+          <View style={{ marginTop: t.spacing.m }}>
+            <SegmentedControl
+              segments={segments}
+              selectedKey={filter}
+              onChange={(k) => {
+                setFilter(k as any);
+                haptics.impact('light');
+              }}
             />
-          </View>
-          <View accessibilityRole="tablist" style={{ marginTop: t.spacing.m, backgroundColor: t.colors.card, borderRadius: t.radius.sm }}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: t.spacing.xs, paddingVertical: t.spacing.xs }}
-            >
-              {(['all', 'expenses', 'recurring', 'groups', 'settlements', 'comments'] as const).map((f) => {
-                const selected = filter === f;
-                return (
-                  <Text
-                    key={f}
-                    onPress={() => setFilter(f)}
-                    accessibilityRole="tab"
-                    accessibilityState={{ selected }}
-                    numberOfLines={1}
-                    style={{
-                      ...t.text.subheadline,
-                      paddingHorizontal: t.spacing.m,
-                      paddingVertical: t.spacing.s,
-                      borderRadius: t.radius.sm,
-                      color: selected ? 'white' : t.colors.label,
-                      backgroundColor: selected ? t.colors.tint : 'transparent',
-                      fontWeight: selected ? '600' : '400',
-                      marginRight: t.spacing.xs,
-                    }}
-                  >
-                    {f.charAt(0).toUpperCase() + f.slice(1)}
-                  </Text>
-                );
-              })}
-            </ScrollView>
           </View>
         </View>
       }

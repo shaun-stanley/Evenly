@@ -74,20 +74,28 @@ const initialState: State = {
   activity: [],
   recurring: {},
   settlements: {},
-  settings: { currency: 'USD', locale: 'system' },
+  settings: { currency: 'USD', locale: 'system', hasOnboarded: false },
 };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case 'HYDRATE':
+    case 'HYDRATE': {
       // Ensure new keys exist when loading older persisted states
+      const incoming = action.payload as State;
+      const incomingSettings = (incoming as any).settings ?? {};
+      const mergedSettings = { ...initialState.settings, ...incomingSettings } as State['settings'];
+      // If an older state doesn't have hasOnboarded, treat as already onboarded to avoid re-showing onboarding on upgrade
+      if (typeof (incomingSettings as any).hasOnboarded === 'undefined') {
+        (mergedSettings as any).hasOnboarded = true;
+      }
       return {
         ...initialState,
-        ...action.payload,
-        recurring: (action.payload as any).recurring ?? {},
-        settlements: (action.payload as any).settlements ?? {},
-        settings: { ...initialState.settings, ...(action.payload as any).settings },
+        ...incoming,
+        recurring: incoming.recurring ?? {},
+        settlements: incoming.settlements ?? {},
+        settings: mergedSettings,
       };
+    }
     case 'ADD_GROUP': {
       const id = genId('grp');
       const memberIds = action.payload.memberIds && action.payload.memberIds.length > 0
@@ -347,6 +355,10 @@ function reducer(state: State, action: Action): State {
       const { locale } = action.payload as { locale?: string | 'system' };
       return { ...state, settings: { ...state.settings, locale: locale ?? 'system' } };
     }
+    case 'SET_ONBOARDED': {
+      const { hasOnboarded } = action.payload as { hasOnboarded: boolean };
+      return { ...state, settings: { ...state.settings, hasOnboarded } };
+    }
     default:
       return state;
   }
@@ -367,6 +379,7 @@ const StoreContext = createContext<{
   setGroupCurrency: (id: ID, currency?: string) => void;
   setCurrency: (currency: string) => void;
   setLocale: (locale?: string | 'system') => void;
+  setOnboarded: (hasOnboarded: boolean) => void;
   addSettlement: (payload: AddSettlementPayload) => void;
   deleteSettlement: (id: ID) => void;
   addComment: (payload: AddCommentPayload) => void;
@@ -454,6 +467,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const setLocale = (locale?: string | 'system') =>
     dispatch({ type: 'SET_LOCALE', payload: { locale } });
 
+  const setOnboarded = (hasOnboarded: boolean) =>
+    dispatch({ type: 'SET_ONBOARDED', payload: { hasOnboarded } });
+
   const addSettlement = (payload: AddSettlementPayload) =>
     dispatch({ type: 'ADD_SETTLEMENT', payload });
 
@@ -463,7 +479,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const addComment = (payload: AddCommentPayload) =>
     dispatch({ type: 'ADD_COMMENT', payload });
 
-  const value = useMemo(() => ({ state, dispatch, addGroup, addExpense, editExpense, deleteExpense, renameGroup, addRecurring, editRecurring, deleteRecurring, toggleRecurringActive, setGroupCurrency, setCurrency, setLocale, addSettlement, deleteSettlement, addComment, hydrated }), [state, hydrated]);
+  const value = useMemo(() => ({ state, dispatch, addGroup, addExpense, editExpense, deleteExpense, renameGroup, addRecurring, editRecurring, deleteRecurring, toggleRecurringActive, setGroupCurrency, setCurrency, setLocale, setOnboarded, addSettlement, deleteSettlement, addComment, hydrated }), [state, hydrated]);
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }
 

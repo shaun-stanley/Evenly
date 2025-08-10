@@ -19,6 +19,10 @@ const MAPPING: IconMapping = {
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
   'chevron.left': 'chevron-left',
+  // Onboarding icons
+  'sparkles': 'auto-awesome',
+  'hand.tap': 'touch-app',
+  'lock.shield': 'security',
   // Common actions
   'pencil': 'edit',
   'pencil.circle.fill': 'edit',

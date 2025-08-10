@@ -1,7 +1,8 @@
 import React from 'react';
-import { Modal, Platform, Pressable, StyleSheet, Text, TextInput, View, FlatList } from 'react-native';
+import { Modal, Platform, Pressable, StyleSheet, Text, View, FlatList } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { SearchField } from '@/components/ui/SearchField';
 import { LOCALES } from '@/utils/locales';
 import { toShadowStyle } from '@/utils/shadow';
 
@@ -48,16 +49,11 @@ export function LocalePicker({ visible, selected, onSelect, onClose, title = 'Se
           <View style={{ width: 60 }} />
         </View>
 
-        <View style={[styles.searchContainer, styles.searchShadow]}>
-          <IconSymbol name="magnifyingglass" size={16} color={t.colors.secondaryLabel as any} />
-          <TextInput
+        <View style={styles.searchWrap}>
+          <SearchField
             value={query}
             onChangeText={setQuery}
             placeholder="Search locale"
-            placeholderTextColor={t.colors.secondaryLabel}
-            style={styles.searchInput}
-            autoCorrect={false}
-            autoCapitalize="none"
             returnKeyType="done"
           />
         </View>
@@ -109,20 +105,7 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
     headerShadow: toShadowStyle(t.shadows.header),
     headerTitle: { color: t.colors.label, fontSize: 16, fontWeight: '600' },
     headerAction: { color: t.colors.tint, fontSize: 16, fontWeight: '600' },
-    searchContainer: {
-      margin: 16,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 10,
-      borderRadius: 12,
-      backgroundColor: t.colors.card,
-      borderWidth: 1,
-      borderColor: t.colors.separator,
-    },
-    searchShadow: toShadowStyle(t.shadows.card),
-    searchInput: { flex: 1, color: t.colors.label },
+    searchWrap: { margin: 16 },
     row: {
       paddingHorizontal: 16,
       paddingVertical: 14,

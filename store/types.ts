@@ -90,6 +90,7 @@ export type ActivityItem = {
 export type Settings = {
   currency: string; // ISO 4217 code e.g. 'USD'
   locale?: string | 'system'; // BCP 47 or 'system' to follow device
+  hasOnboarded?: boolean; // first-launch onboarding completion
 };
 
 export type State = {
@@ -181,6 +182,7 @@ export type Action =
   | { type: 'SET_GROUP_CURRENCY'; payload: { id: ID; currency?: string } }
   | { type: 'SET_CURRENCY'; payload: { currency: string } }
   | { type: 'SET_LOCALE'; payload: { locale?: string | 'system' } }
+  | { type: 'SET_ONBOARDED'; payload: { hasOnboarded: boolean } }
   | { type: 'ADD_SETTLEMENT'; payload: AddSettlementPayload }
   | { type: 'DELETE_SETTLEMENT'; payload: { id: ID } }
   | { type: 'ADD_COMMENT'; payload: AddCommentPayload }

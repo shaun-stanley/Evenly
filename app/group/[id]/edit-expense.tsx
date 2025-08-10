@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button';
 import type { Attachment } from '@/store/types';
 import { saveAttachmentFile, deleteAttachmentFile } from '@/utils/attachments';
 import { IconSymbol } from '@/components/ui/IconSymbol';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
 
 export default function EditExpenseScreen() {
   const { id, expenseId } = useLocalSearchParams<{ id: string; expenseId: string }>();
@@ -325,23 +326,18 @@ export default function EditExpenseScreen() {
             title="Split"
             subtitle={splitType === 'equal' ? 'Split equally among members' : splitType === 'amount' ? 'Enter amounts per person (we will normalize to total)' : 'Enter percentage per person (we will normalize to 100%)'}
             right={
-              <View style={styles.segmentRow} accessibilityRole="tablist">
-                {(['equal', 'amount', 'percent'] as const).map((opt) => (
-                  <Pressable
-                    key={opt}
-                    onPress={() => setSplitType(opt)}
-                    style={[styles.segment, splitType === opt && styles.segmentSelected]}
-                    accessibilityRole="tab"
-                    accessibilityState={{ selected: splitType === opt }}
-                    accessibilityLabel={opt === 'equal' ? 'Equal' : opt === 'amount' ? 'Amount' : 'Percent'}
-                    hitSlop={8}
-                  >
-                    <Text style={[styles.segmentText, splitType === opt && styles.segmentTextSelected]}>
-                      {opt === 'equal' ? 'Equal' : opt === 'amount' ? 'Amount' : 'Percent'}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+              <SegmentedControl
+                segments={[
+                  { key: 'equal', label: 'Equal' },
+                  { key: 'amount', label: 'Amount' },
+                  { key: 'percent', label: 'Percent' },
+                ]}
+                selectedKey={splitType}
+                onChange={(key) => setSplitType(key as 'equal' | 'amount' | 'percent')}
+                scrollable={false}
+                style={{ marginTop: 4 }}
+                testID="split-type-control"
+              />
             }
           />
         </GroupedSection>
@@ -430,8 +426,6 @@ export default function EditExpenseScreen() {
                       backgroundColor: t.colors.card,
                       borderRadius: t.radius.md,
                       padding: 10,
-                      borderWidth: StyleSheet.hairlineWidth,
-                      borderColor: t.colors.separator,
                     }}
                     accessible
                     accessibilityLabel={`Comment by ${state.members[c.memberId]?.name ?? 'member'}`}
@@ -531,24 +525,6 @@ function makeStyles(t: Tokens) {
       color: t.colors.label,
       minWidth: 120,
     },
-    segmentRow: {
-      flexDirection: 'row',
-      backgroundColor: t.colors.card,
-      borderRadius: t.radius.md,
-      padding: 4,
-      marginTop: 4,
-    },
-    segment: {
-      flex: 1,
-      alignItems: 'center',
-      paddingVertical: 8,
-      borderRadius: t.radius.sm,
-    },
-    segmentSelected: {
-      backgroundColor: t.colors.tint,
-    },
-    segmentText: { color: t.colors.label },
-    segmentTextSelected: { color: 'white', fontWeight: '600' },
     attachmentsPad: {
       paddingHorizontal: t.spacing.l,
       paddingVertical: t.spacing.m,

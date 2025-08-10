@@ -157,12 +157,10 @@ export default function EditRecurringScreen() {
                     accessibilityLabel={`Frequency ${f}`}
                     style={({ pressed }) => [
                       {
-                        backgroundColor: selected ? t.colors.tint : t.colors.card,
+                        backgroundColor: selected ? t.colors.tint : t.colors.fill,
                         paddingHorizontal: t.spacing.m,
                         paddingVertical: t.spacing.s,
                         borderRadius: t.radius.md,
-                        borderWidth: StyleSheet.hairlineWidth,
-                        borderColor: t.colors.separator,
                       },
                       pressed && { opacity: 0.85 },
                     ]}

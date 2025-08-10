@@ -6,7 +6,7 @@ import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AppThemeProvider } from '@/theme/AppThemeProvider';
-import { StoreProvider } from '@/store/store';
+import { StoreProvider, useStore } from '@/store/store';
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -30,10 +30,14 @@ export default function RootLayout() {
 }
 
 function RootNavigator() {
+  const { state, hydrated } = useStore();
+  if (!hydrated) return null;
+  const onboarded = !!state.settings.hasOnboarded;
   return (
     <>
-      <Stack screenOptions={{ headerShown: false }}>
+      <Stack initialRouteName={onboarded ? '(tabs)' : 'onboarding'} screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

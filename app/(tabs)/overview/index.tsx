@@ -224,8 +224,6 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
       paddingHorizontal: t.spacing.l,
       paddingVertical: t.spacing.m,
       borderRadius: t.radius.md,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: t.colors.separator,
     },
     ctaText: { color: '#fff', fontWeight: '600' },
     emptyButton: {
