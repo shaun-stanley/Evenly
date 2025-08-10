@@ -9,11 +9,19 @@ export type ColorTokens = {
   secondaryBackground?: string | OpaqueColorValue;
   /** Tertiary fill surfaces, glass backdrops, tags */
   tertiaryBackground?: string | OpaqueColorValue; // systemFill/tertiarySystemBackground proxy
+  /** iOS semantic background (non-grouped) */
+  systemBackground?: string | OpaqueColorValue;
+  /** iOS secondary semantic background (non-grouped) */
+  secondarySystemBackground?: string | OpaqueColorValue;
+  /** iOS tertiary semantic background (non-grouped) */
+  tertiarySystemBackground?: string | OpaqueColorValue;
   label: string | OpaqueColorValue;
   secondaryLabel: string | OpaqueColorValue;
   separator: string | OpaqueColorValue;
   fill: string | OpaqueColorValue; // tertiarySystemFill
   tint: string | OpaqueColorValue; // systemBlue
+  /** alias of tint for clarity */
+  tintColor?: string | OpaqueColorValue;
   link?: string | OpaqueColorValue; // linkColor
   success: string | OpaqueColorValue; // systemGreen
   danger: string | OpaqueColorValue; // systemRed
@@ -90,11 +98,15 @@ export const lightTokens: Tokens = {
     card: isiOS ? PlatformColor('secondarySystemGroupedBackground') : '#ffffff',
     secondaryBackground: isiOS ? PlatformColor('secondarySystemGroupedBackground') : '#ffffff',
     tertiaryBackground: isiOS ? PlatformColor('tertiarySystemBackground') : '#f2f2f7',
+    systemBackground: isiOS ? PlatformColor('systemBackground') : '#ffffff',
+    secondarySystemBackground: isiOS ? PlatformColor('secondarySystemBackground') : '#f2f2f7',
+    tertiarySystemBackground: isiOS ? PlatformColor('tertiarySystemBackground') : '#f2f2f7',
     label: isiOS ? PlatformColor('label') : '#1c1c1e',
     secondaryLabel: isiOS ? PlatformColor('secondaryLabel') : '#8e8e93',
     separator: isiOS ? PlatformColor('separator') : '#e5e5ea',
     fill: isiOS ? PlatformColor('tertiarySystemFill') : '#f2f2f7',
     tint: isiOS ? PlatformColor('systemBlue') : '#007aff',
+    tintColor: isiOS ? PlatformColor('systemBlue') : '#007aff',
     link: isiOS ? PlatformColor('link') : '#007aff',
     success: isiOS ? PlatformColor('systemGreen') : '#34c759',
     danger: isiOS ? PlatformColor('systemRed') : '#ff3b30',
@@ -138,11 +150,15 @@ export const darkTokens: Tokens = {
     card: isiOS ? PlatformColor('secondarySystemGroupedBackground') : '#1c1c1e',
     secondaryBackground: isiOS ? PlatformColor('secondarySystemGroupedBackground') : '#1c1c1e',
     tertiaryBackground: isiOS ? PlatformColor('tertiarySystemBackground') : '#2c2c2e',
+    systemBackground: isiOS ? PlatformColor('systemBackground') : '#000000',
+    secondarySystemBackground: isiOS ? PlatformColor('secondarySystemBackground') : '#1c1c1e',
+    tertiarySystemBackground: isiOS ? PlatformColor('tertiarySystemBackground') : '#2c2c2e',
     label: isiOS ? PlatformColor('label') : '#ffffff',
     secondaryLabel: isiOS ? PlatformColor('secondaryLabel') : '#8e8e93',
     separator: isiOS ? PlatformColor('separator') : '#2c2c2e',
     fill: isiOS ? PlatformColor('tertiarySystemFill') : '#2c2c2e',
     tint: isiOS ? PlatformColor('systemBlue') : '#0a84ff',
+    tintColor: isiOS ? PlatformColor('systemBlue') : '#0a84ff',
     link: isiOS ? PlatformColor('link') : '#0a84ff',
     success: isiOS ? PlatformColor('systemGreen') : '#30d158',
     danger: isiOS ? PlatformColor('systemRed') : '#ff453a',

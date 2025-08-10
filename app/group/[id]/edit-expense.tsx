@@ -516,14 +516,13 @@ function makeStyles(t: Tokens) {
   return StyleSheet.create({
     container: { backgroundColor: t.colors.background, flexGrow: 1, paddingBottom: t.spacing.xl },
     input: {
-      backgroundColor: t.colors.card,
+      backgroundColor: t.colors.fill,
       borderRadius: t.radius.md,
       paddingHorizontal: 12,
       paddingVertical: 10,
       fontSize: 16,
       color: t.colors.label,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: t.colors.separator,
+      // Removed outline for Apple-like field appearance
     },
     inputRow: {
       paddingHorizontal: 0,

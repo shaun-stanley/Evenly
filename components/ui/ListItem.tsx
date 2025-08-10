@@ -18,6 +18,8 @@ export type ListItemProps = {
   enableHaptics?: boolean;
   inset?: boolean; // controls outer margins when pressable
   variant?: 'card' | 'row'; // visual style
+  /** Optional hairline outline (disabled by default). */
+  outlined?: boolean;
   accessibilityLabel?: string;
   accessibilityHint?: string;
   accessibilityRole?: AccessibilityRole;
@@ -37,6 +39,7 @@ export function ListItem({
   enableHaptics = true,
   inset = true,
   variant = 'card',
+  outlined = false,
   accessibilityLabel,
   accessibilityHint,
   accessibilityRole,
@@ -50,6 +53,7 @@ export function ListItem({
       style={[
         styles.containerBase,
         variant === 'card' ? styles.containerCard : styles.containerRow,
+        variant === 'card' && outlined && styles.outlined,
         style,
       ]}
     >
@@ -126,12 +130,11 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
     containerCard: {
       backgroundColor: t.colors.card,
       borderRadius: t.radius.md,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: t.colors.separator,
     },
     containerRow: {
       backgroundColor: 'transparent',
     },
+    outlined: { borderWidth: StyleSheet.hairlineWidth, borderColor: t.colors.separator as string },
     left: { marginRight: t.spacing.m },
     center: { flex: 1 },
     right: { marginLeft: t.spacing.s, flexDirection: 'row', alignItems: 'center' },

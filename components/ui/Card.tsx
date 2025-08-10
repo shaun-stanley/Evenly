@@ -11,15 +11,17 @@ export type CardProps = {
   elevated?: boolean;
   /** Which shadow token to use when elevated. Defaults to 'card'. */
   variant?: 'card' | 'floating' | 'modal' | 'header';
+  /** Optional hairline outline (disabled by default). */
+  outlined?: boolean;
   testID?: string;
 };
 
-export function Card({ children, style, padded = true, elevated = true, variant = 'card', testID }: CardProps) {
+export function Card({ children, style, padded = true, elevated = true, variant = 'card', outlined = false, testID }: CardProps) {
   const t = useTheme();
   const styles = React.useMemo(() => makeStyles(t), [t]);
   const shadow = React.useMemo(() => (elevated ? toShadowStyle(t.shadows[variant]) : undefined), [elevated, t, variant]);
   return (
-    <View testID={testID} style={[styles.base, shadow, padded && styles.padded, style]}>
+    <View testID={testID} style={[styles.base, outlined && styles.outlined, shadow, padded && styles.padded, style]}>
       {children}
     </View>
   );
@@ -30,9 +32,8 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
     base: {
       backgroundColor: t.colors.card,
       borderRadius: t.radius.md,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: t.colors.separator,
     },
+    outlined: { borderWidth: StyleSheet.hairlineWidth, borderColor: t.colors.separator as string },
     padded: { paddingHorizontal: t.spacing.l, paddingVertical: t.spacing.l },
   });
 }

@@ -428,8 +428,7 @@ function makeStyles(t: Tokens) {
     glassCard: {
       borderRadius: t.radius.lg,
       overflow: 'hidden',
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: t.colors.separator,
+      // Removed outline for Apple-like glass; rely on blur + shadow
     },
     glassInner: { padding: t.spacing.l },
     largeBalance: { ...t.text.largeTitle, color: t.colors.label, marginTop: t.spacing.s, fontVariant: ['tabular-nums'] },
@@ -439,8 +438,6 @@ function makeStyles(t: Tokens) {
       borderRadius: t.radius.md,
       paddingHorizontal: t.spacing.m,
       paddingVertical: t.spacing.s,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: t.colors.separator,
       backgroundColor: t.colors.fill,
     },
     pillLabelDanger: { ...t.text.subheadline, color: t.colors.danger, marginTop: 2 },
@@ -481,8 +478,6 @@ function makeStyles(t: Tokens) {
       alignItems: 'center',
       justifyContent: 'center',
       overflow: 'hidden',
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: t.colors.separator,
       backgroundColor: t.colors.tint,
     },
     fabShadow: toShadowStyle(t.shadows.floating),
