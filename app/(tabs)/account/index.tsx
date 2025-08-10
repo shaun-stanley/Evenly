@@ -1,7 +1,6 @@
 import React from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
-import { Card } from '@/components/ui/Card';
 import { ListItem } from '@/components/ui/ListItem';
 import { useStore } from '@/store/store';
 import { CurrencyPicker } from '@/components/ui/CurrencyPicker';
@@ -24,49 +23,50 @@ export default function AccountScreen() {
   }, [state.settings.locale]);
 
   return (
-    <View style={{ flex: 1 }}>
-      <Card style={styles.card}>
+    <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingBottom: t.spacing.xxl, paddingTop: t.spacing.m }}>
+      <View style={styles.sectionHeaderContainer}>
         <Text style={styles.title}>Preferences</Text>
-        <ListItem
-          title={"Default currency"}
-          subtitle={"Used when a group hasn't set a currency"}
-          right={<Text style={styles.rightText}>{state.settings.currency}</Text>}
-          showChevron
-          onPress={() => setShowCurrencyPicker(true)}
-          accessibilityLabel={`Default currency ${state.settings.currency}`}
-          accessibilityHint="Opens currency picker"
-        />
-        <ListItem
-          title={"Locale"}
-          subtitle={"Number, date, and currency formatting"}
-          right={<Text style={styles.rightText}>{localeLabel}</Text>}
-          showChevron
-          onPress={() => setShowLocalePicker(true)}
-          accessibilityLabel={`Locale ${localeLabel}`}
-          accessibilityHint="Opens locale picker"
-        />
-      </Card>
-      <Card style={styles.card}>
+      </View>
+      <ListItem
+        title="Default currency"
+        subtitle="Used when a group hasn't set a currency"
+        right={<Text style={styles.rightText}>{state.settings.currency}</Text>}
+        showChevron
+        onPress={() => setShowCurrencyPicker(true)}
+        accessibilityLabel={`Default currency ${state.settings.currency}`}
+        accessibilityHint="Opens currency picker"
+      />
+      <ListItem
+        title="Locale"
+        subtitle="Number, date, and currency formatting"
+        right={<Text style={styles.rightText}>{localeLabel}</Text>}
+        showChevron
+        onPress={() => setShowLocalePicker(true)}
+        accessibilityLabel={`Locale ${localeLabel}`}
+        accessibilityHint="Opens locale picker"
+      />
+
+      <View style={styles.sectionHeaderContainer}>
         <Text style={styles.title}>Data</Text>
-        <ListItem
-          title={<Text style={styles.titleRow}>Export data</Text>}
-          subtitle={<Text style={styles.muted}>Save or share a JSON copy of your data</Text>}
-          showChevron
-          onPress={async () => {
-            try {
-              const { uri, shared } = await exportAndShare(state);
-              if (!shared) {
-                Alert.alert('Export complete', `Saved to: ${uri}`);
-              }
-            } catch (e) {
-              console.error('Export failed', e);
-              Alert.alert('Export failed', 'Unable to export at this time.');
+      </View>
+      <ListItem
+        title="Export data"
+        subtitle="Save or share a JSON copy of your data"
+        showChevron
+        onPress={async () => {
+          try {
+            const { uri, shared } = await exportAndShare(state);
+            if (!shared) {
+              Alert.alert('Export complete', `Saved to: ${uri}`);
             }
-          }}
-          accessibilityLabel="Export data"
-          accessibilityHint="Creates a JSON export and opens the share sheet"
-        />
-      </Card>
+          } catch (e) {
+            console.error('Export failed', e);
+            Alert.alert('Export failed', 'Unable to export at this time.');
+          }
+        }}
+        accessibilityLabel="Export data"
+        accessibilityHint="Creates a JSON export and opens the share sheet"
+      />
       <CurrencyPicker
         visible={showCurrencyPicker}
         selectedCode={state.settings.currency}
@@ -83,16 +83,14 @@ export default function AccountScreen() {
         onClose={() => setShowLocalePicker(false)}
         title="Locale"
       />
-    </View>
+    </ScrollView>
   );
 }
 
 function makeStyles(t: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
-    card: { marginHorizontal: t.spacing.l, marginTop: t.spacing.l },
+    sectionHeaderContainer: { marginHorizontal: t.spacing.l, marginTop: t.spacing.l },
     title: { ...t.text.title3, color: t.colors.label, marginBottom: t.spacing.s },
-    titleRow: { ...t.text.headline, color: t.colors.label },
-    muted: { ...t.text.subheadline, color: t.colors.secondaryLabel, marginTop: t.spacing.xs },
     rightText: { ...t.text.headline, color: t.colors.label },
   });
 }
