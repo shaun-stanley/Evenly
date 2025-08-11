@@ -89,3 +89,90 @@ This plan drives a repo-wide transformation to an Apple-authentic iOS 18 look & 
 - Search has recents and scope; lists use inset separators.
 - Haptics present on key interactions; animations respect Reduce Motion.
 - A11y checks pass; QA matrix green.
+
+## Progress & Task Tracker
+
+Use this as the single source of truth for execution. Check off completed items as we land them.
+
+### Navigation & Onboarding
+- [x] Gate initial route to onboarding for first launch (`app/_layout.tsx`)
+- [x] Implement onboarding flow UI with paging and haptics (`app/onboarding.tsx`)
+- [x] Persist onboarding state in store (`Settings.hasOnboarded`, `SET_ONBOARDED`)
+- [x] Standardize nav headers to theme tokens across stacks
+  - [x] Overview tab (`app/(tabs)/overview/_layout.tsx`)
+  - [x] Activity tab (`app/(tabs)/activity/_layout.tsx`)
+  - [x] Groups tab (`app/(tabs)/groups/_layout.tsx`)
+  - [x] Account tab (`app/(tabs)/account/_layout.tsx`)
+  - [x] Group detail stack (`app/group/[id]/_layout.tsx`)
+- [ ] Create shared helper: `getStackHeaderOptions(t, { large: boolean })` and adopt
+
+### Shared Components (foundation)
+- [x] Button variants, sizes, shapes aligned to tokens
+- [x] SegmentedControl component (Activity scope bar)
+- [x] GroupedSection updated to true iOS grouped lists (no card shadows)
+- [x] EmptyState component
+- [ ] ScreenHeader text component for large/small titles within content (non-nav)
+- [ ] Banner/Toast pattern for inline notices
+- [ ] Sheet/Modal primitives (pageSheet and compact) with blur + shadow
+- [ ] FormField (label, input, helper/error, states) rollout
+
+### Overview Screen
+- [x] Section headers use Apple subheadline and sentence case
+- [ ] Balance card typography uses tokenized scales, supports Dynamic Type
+- [ ] Improve spacing to token baselines (cards/CTAs/sections)
+- [ ] Optional: refine headline text casing (e.g., sentence case)
+- [ ] Add subtle feedback on CTA press (scale/opacity via `useReducedMotion` guard)
+
+### Activity Screen
+- [x] Search recents UI under SearchField
+- [x] Segmented scope filters using SegmentedControl
+- [x] Pull-to-refresh with haptic feedback
+- [x] Activity Detail screen (native UI, small title)
+- [x] Attachments badge on items (paperclip + count)
+- [ ] Inset separators; remove any redundant per-item margins
+- [ ] List item layout polish (icon sizes, spacing, secondary text color)
+- [ ] Sticky search + tabs on scroll (iOS behavior)
+- [ ] Microinteraction: gentle spring when switching segments
+
+### Groups
+- [ ] Groups list item polish (avatar sizes, subtitle color, chevron alignment)
+- [ ] Create Group screen as sheet (blurred) with FormField
+- [x] Settle Up pill button style in Group Detail
+- [ ] Group Detail: section headers to subheadline, token spacing
+- [ ] Swipe actions on expenses with haptics
+- [ ] Empty states for no expenses / no members
+
+### Expense Flows
+- [ ] Adopt FormField for Add/Edit Expense
+- [ ] Live currency formatting with locale (`selectEffectiveLocale`)
+- [ ] Input accessory actions (Next/Done), proper returnKey flows
+- [ ] Validation states (disabled CTA / inline helper)
+
+### Pickers & Sheets
+- [x] LocalePicker and CurrencyPicker
+- [ ] Unify picker presentation via Sheet components (blur + grabber)
+- [ ] Add SearchField to Currency/Locale pickers with results highlighting
+- [ ] Remove outlines from pickers; rely on filled surfaces
+
+### Microinteractions & Haptics
+- [x] Haptics on key actions (onboarding, refresh, primary CTAs)
+- [ ] Add selection/success haptics across: segment changes, toggles, form submit
+- [ ] Subtle press states (scale/opacity) on tappables, guarded by reduce-motion
+
+### Accessibility
+- [ ] VoiceOver labels/hints for icon-only buttons (audit app-wide)
+- [ ] Verify 44x44 hit targets (HeaderIconButton, small buttons)
+- [ ] Dynamic Type: verify large text on all key screens (wraps/truncation)
+- [ ] Reduce Motion paths for transitions and springs
+- [ ] Color contrast audit for secondary text and disabled states
+
+### Performance & QA
+- [ ] Scroll performance audit (overdraw, virtualization on long lists)
+- [ ] Device matrix pass: SE/13 Mini/15 Pro Max; Light/Dark; Small–XL text
+- [ ] Visual regression snapshots for Overview, Activity, Group Detail, Expense
+
+### System Integrations (later)
+- [ ] Siri Shortcuts for frequent actions
+- [ ] Spotlight indexing of groups/expenses
+- [ ] Share Sheet flows for exporting receipts
+- [ ] Widgets for balances and recents

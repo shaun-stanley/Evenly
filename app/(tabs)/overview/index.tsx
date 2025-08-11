@@ -132,7 +132,7 @@ export default function OverviewScreen() {
         <Button title="Settle up" icon="checkmark" variant="gray" onPress={handleSettleUp} style={{ flex: 1 }} />
       </View>
 
-      <Text style={styles.sectionHeader}>RECENT ACTIVITY</Text>
+      <Text style={styles.sectionHeader}>Recent activity</Text>
       {state.activity.slice(0, 5).map((item) => (
         <ListItem
           key={item.id}
@@ -159,7 +159,7 @@ export default function OverviewScreen() {
         </View>
       )}
 
-      <Text style={[styles.sectionHeader, { marginTop: t.spacing.l }]}>YOUR GROUPS</Text>
+      <Text style={[styles.sectionHeader, { marginTop: t.spacing.l }]}>Your groups</Text>
       {groups.map((g) => {
         const gt = computeGroupTotalsForUserInGroup(state, g.id);
         let right: React.ReactNode = <Text style={styles.groupStatusMuted}>Settled up</Text>;
@@ -207,7 +207,7 @@ function makeStyles(t: ReturnType<typeof useTheme>) {
     balanceLabel: { color: t.colors.secondaryLabel, fontSize: 12, fontWeight: '700', letterSpacing: 0.3 },
     balanceAmount: { fontSize: 34, fontWeight: '700', marginTop: t.spacing.xs },
     balanceMeta: { color: t.colors.secondaryLabel, marginTop: t.spacing.xs },
-    sectionHeader: { color: t.colors.secondaryLabel, fontSize: 12, fontWeight: '700', marginHorizontal: t.spacing.l, marginTop: t.spacing.xl, marginBottom: t.spacing.s },
+    sectionHeader: { ...t.text.subheadline, color: t.colors.secondaryLabel, marginHorizontal: t.spacing.l, marginTop: t.spacing.xl, marginBottom: t.spacing.s },
     activityTitle: { color: t.colors.label, fontSize: 16, fontWeight: '500' },
     activityDate: { color: t.colors.secondaryLabel },
     groupName: { color: t.colors.label, fontSize: 16, fontWeight: '600' },

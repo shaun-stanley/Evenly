@@ -260,7 +260,7 @@ export default function GroupDetailScreen() {
         </View>
 
         <View style={styles.sectionHeaderContainer}>
-          <Text style={styles.sectionTitle}>Group</Text>
+          <Text style={styles.sectionHeaderTitle}>Group</Text>
         </View>
         <GroupedSection>
           <ListItem
@@ -280,7 +280,7 @@ export default function GroupDetailScreen() {
         </GroupedSection>
 
         <View style={styles.sectionHeaderContainer}>
-          <Text style={styles.sectionTitle}>Expenses</Text>
+          <Text style={styles.sectionHeaderTitle}>Expenses</Text>
         </View>
         {expenses.length === 0 ? (
           <EmptyState icon="tray" message="No expenses yet." />
@@ -436,6 +436,7 @@ function makeStyles(t: Tokens) {
     settlePillText: { ...t.text.subheadline, color: '#ffffff', fontWeight: '600' },
     sectionHeaderContainer: { marginHorizontal: t.spacing.l, marginTop: t.spacing.l },
     sectionTitle: { ...t.text.title3, color: t.colors.label, marginBottom: t.spacing.s },
+    sectionHeaderTitle: { ...t.text.subheadline, color: t.colors.secondaryLabel, marginBottom: t.spacing.s },
     itemTitle: { ...t.text.body, color: t.colors.label },
     itemSubtitle: { ...t.text.caption1, color: t.colors.secondaryLabel },
     expenseAmount: { ...t.text.body, color: t.colors.label, fontVariant: ['tabular-nums'] },
